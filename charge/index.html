@@ -1,0 +1,1949 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}</style>
+<title>充電大作戰</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Russo+One&family=Noto+Sans+TC:wght@500;700;900&display=swap">
+<style>
+/* Layout: one game column — HUD on top, a phone battery that charges with each right answer.
+   Bright sporty single light look: sky-white ground, electric blue, volt yellow, hot orange. */
+:root{
+  --bg:#eaf3ff; --grid:#d6e6fb; --panel:#ffffff; --panel2:#f2f7ff; --line:#c9daf3;
+  --ink:#122047; --muted:#5a6a91;
+  --blue:#1f6bff; --blue-dk:#1449b8; --volt:#ffc41f; --volt-dk:#d99a00; --hot:#ff6a2b;
+  --ok:#12a85a; --ok-soft:#ddf7e8; --bad:#e2344c; --bad-soft:#ffe3e7; --warn-soft:#fff3d1;
+  --display:"Russo One","Noto Sans TC",system-ui,sans-serif;
+  --body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{background:var(--bg)}
+body{color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55;
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:36px 36px;background-attachment:fixed;background-color:var(--bg);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:16px 48px;min-height:100%}
+.wrap{max-width:540px;margin:0 auto;display:flex;flex-direction:column;gap:14px;position:relative}
+button{font-family:inherit;color:inherit}
+button:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+
+/* HUD */
+.hud{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.logo{font-family:var(--display);font-weight:400;font-size:1.6rem;line-height:1;margin:0;flex:1 1 auto;color:var(--blue);
+  text-shadow:3px 3px 0 var(--volt)}
+.logo small{display:block;font-family:var(--body);font-size:.72rem;color:var(--muted);letter-spacing:.12em;margin-top:6px;text-shadow:none;font-weight:700}
+.chip{display:flex;align-items:center;gap:6px;background:var(--panel);border:2px solid var(--line);border-radius:999px;padding:5px 12px;font-weight:700;font-size:.9rem;font-variant-numeric:tabular-nums}
+.chip b{font-family:var(--display);font-weight:400}
+.chip.rank b{color:var(--blue)}
+.chip.streak b{color:var(--hot)}
+.icon-btn{background:var(--panel);border:2px solid var(--line);border-radius:999px;width:38px;height:38px;cursor:pointer;font-size:1rem}
+.xp{height:10px;background:var(--panel);border-radius:999px;overflow:hidden;border:2px solid var(--line)}
+.xp i{display:block;height:100%;background:linear-gradient(90deg,var(--blue),var(--hot));width:0;transition:width .6s}
+.xp-label{display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted);margin-top:4px;font-variant-numeric:tabular-nums;font-weight:700}
+
+.panel{background:var(--panel);border:2px solid var(--line);border-radius:20px;padding:18px;display:flex;flex-direction:column;gap:14px;box-shadow:0 6px 0 var(--line)}
+.label{font-size:.75rem;letter-spacing:.14em;color:var(--muted);font-weight:900}
+
+/* lesson cards */
+.lessons{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.lesson{text-align:left;background:var(--panel2);border:2px solid var(--line);border-radius:14px;padding:12px;cursor:pointer;display:flex;flex-direction:column;gap:2px;min-width:0}
+.lesson .no{font-family:var(--display);font-size:.8rem;color:var(--muted)}
+.lesson .ttl{font-weight:700;font-size:.92rem;line-height:1.35}
+.lesson[aria-pressed="true"]{border-color:var(--blue);background:#e3edff}
+.lesson[aria-pressed="true"] .no{color:var(--blue)}
+
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mode{background:var(--panel2);border:2px solid var(--line);border-radius:14px;padding:12px;cursor:pointer;text-align:left;display:flex;gap:10px;align-items:center}
+.mode .em{font-size:1.6rem}
+.mode b{display:block;font-size:1rem}
+.mode span{font-size:.78rem;color:var(--muted)}
+.mode[aria-pressed="true"]{border-color:var(--volt-dk);background:var(--warn-soft)}
+
+.rules{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}
+.rules div{background:var(--panel2);border-radius:12px;padding:8px 4px}
+.rules b{display:block;font-family:var(--display);font-weight:400;font-size:1.3rem;color:var(--blue)}
+.rules span{font-size:.78rem;color:var(--muted);font-weight:700}
+
+.go{font-family:var(--display);font-size:1.3rem;letter-spacing:.04em;border:0;border-radius:16px;padding:15px;cursor:pointer;
+  background:var(--blue);color:#fff;box-shadow:0 6px 0 var(--blue-dk);transition:transform .08s,box-shadow .08s}
+.go:active:not(:disabled){transform:translateY(4px);box-shadow:0 2px 0 var(--blue-dk)}
+.go.volt{background:var(--volt);color:var(--ink);box-shadow:0 6px 0 var(--volt-dk)}
+.go.hot{background:var(--hot);color:#fff;box-shadow:0 6px 0 #c44611}
+.go.alt{background:var(--panel);color:var(--ink);box-shadow:0 6px 0 var(--line);border:2px solid var(--line)}
+.go:disabled{opacity:.4;cursor:not-allowed}
+
+/* wrong-question book */
+.book{border:2px solid var(--hot);background:#fff4ee}
+.book-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.book-head h2{margin:0;font-size:1.15rem;font-weight:900}
+.count{font-family:var(--display);font-size:2rem;line-height:1;color:var(--hot);font-variant-numeric:tabular-nums}
+.count small{font-size:.9rem;color:var(--muted)}
+.meter{height:12px;border-radius:999px;background:#ffe0d2;overflow:hidden}
+.meter i{display:block;height:100%;background:var(--hot);transition:width .4s}
+.book p{margin:0;font-size:.88rem;color:var(--muted)}
+.book p b{color:var(--ink)}
+.lock{background:var(--bad-soft);border:2px solid var(--bad);color:var(--bad);border-radius:12px;padding:10px 12px;font-weight:700;font-size:.92rem}
+.wlist{display:flex;flex-direction:column;gap:6px;margin-top:4px}
+.witem{display:flex;justify-content:space-between;gap:10px;font-size:.88rem;background:#fff;border-radius:10px;padding:6px 10px;border:1px solid #ffd3bf}
+.witem span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dots{flex:none;color:var(--hot);letter-spacing:2px}
+
+/* battery */
+.bat-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.qno{font-family:var(--display);color:var(--muted);font-size:.95rem;font-variant-numeric:tabular-nums}
+.combo{font-family:var(--display);color:var(--hot);font-size:.9rem;min-height:1.2em}
+.battery{display:flex;align-items:center}
+.cells{display:flex;gap:4px;padding:4px;border:3px solid var(--ink);border-radius:8px;width:120px;height:42px;background:#fff}
+.cells i{flex:1;border-radius:3px;background:var(--panel2);transition:background .3s}
+.cells i.on{background:var(--ok)}
+.battery::after{content:"";width:6px;height:16px;background:var(--ink);border-radius:0 3px 3px 0;margin-left:2px}
+
+.review-tag{align-self:flex-start;background:var(--hot);color:#fff;font-weight:900;font-size:.78rem;letter-spacing:.08em;border-radius:999px;padding:3px 10px}
+.qcard{background:var(--panel2);border:2px solid var(--line);border-radius:16px;padding:18px 16px;display:flex;flex-direction:column;gap:10px;align-items:center;text-align:center;position:relative}
+.qtype{font-size:.75rem;letter-spacing:.12em;color:var(--blue);font-weight:900}
+.pic{font-size:4.2rem;line-height:1.1}
+.prompt{font-size:1.3rem;font-weight:900;margin:0;text-wrap:balance;line-height:1.4}
+.prompt .en{font-family:var(--display);font-weight:400}
+.blank{display:inline-block;min-width:3.2em;border-bottom:3px solid var(--hot);margin:0 .15em}
+.hint{font-size:.9rem;color:var(--muted);margin:0}
+.speak{background:#fff;border:2px solid var(--blue);color:var(--blue);border-radius:999px;padding:8px 18px;font-weight:700;cursor:pointer}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.opts.long{grid-template-columns:1fr}
+.opt{background:#fff;border:2px solid var(--line);border-radius:14px;padding:14px 12px;min-height:58px;cursor:pointer;
+  font-size:1.05rem;font-weight:700;text-align:center;line-height:1.35;box-shadow:0 4px 0 var(--line)}
+.opt.en{font-family:var(--display);font-weight:400}
+.opt:hover:not(:disabled){border-color:var(--blue)}
+.opt:disabled{cursor:default}
+.opt.right{border-color:var(--ok);background:var(--ok-soft);color:var(--ok);box-shadow:0 4px 0 var(--ok)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft);color:var(--bad);box-shadow:0 4px 0 var(--bad)}
+.fb{border-radius:14px;padding:12px 14px;font-size:.95rem;border:2px solid}
+.fb.ok{border-color:var(--ok);background:var(--ok-soft)}
+.fb.no{border-color:var(--bad);background:var(--bad-soft)}
+.fb strong{display:block;font-size:1.05rem}
+.fb.ok strong{color:var(--ok)} .fb.no strong{color:var(--bad)}
+.fb p{margin:4px 0 0}
+.fb .sub{color:var(--muted);font-size:.85rem}
+.shake{animation:shake .4s}
+@keyframes shake{20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+.pop{position:absolute;top:10px;right:14px;font-family:var(--display);color:var(--hot);font-size:1.4rem;animation:pop .9s forwards;pointer-events:none}
+@keyframes pop{from{opacity:1;transform:translateY(0) scale(.8)}to{opacity:0;transform:translateY(-40px) scale(1.3)}}
+
+/* result & timer */
+.big{font-family:var(--display);font-size:3.6rem;line-height:1;text-align:center;color:var(--blue);text-shadow:3px 3px 0 var(--volt);font-variant-numeric:tabular-nums}
+.center{text-align:center;margin:0}
+.res-title{font-family:var(--display);font-size:1.6rem;text-align:center;margin:0}
+.code{font-family:var(--display);font-size:1.8rem;letter-spacing:.3em;text-align:center;background:var(--panel2);border:2px dashed var(--line);border-radius:12px;padding:8px;font-variant-numeric:tabular-nums}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}
+.stats div{background:var(--panel2);border-radius:12px;padding:8px}
+.stats b{display:block;font-family:var(--display);font-weight:400;font-size:1.2rem}
+.stats span{font-size:.75rem;color:var(--muted);font-weight:700}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.row>*{flex:1 1 140px}
+.timer{font-family:var(--display);font-size:4rem;text-align:center;color:var(--ok);font-variant-numeric:tabular-nums;line-height:1}
+.timer.low{color:var(--bad)}
+
+details summary{cursor:pointer;font-weight:700;color:var(--muted)}
+.log-wrap{overflow-x:auto}
+.log{width:100%;border-collapse:collapse;font-size:.88rem;font-variant-numeric:tabular-nums;margin-top:8px}
+.log td,.log th{padding:6px 4px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+.log th{color:var(--muted);font-weight:500}
+#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
+@media (max-width:380px){.opts{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<style>
+/* star economy additions */
+.wallet{display:flex;align-items:center;gap:14px;border:2px solid var(--volt-dk);background:var(--warn-soft)}
+.wallet .stars{font-family:var(--display);font-size:2.6rem;line-height:1;color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap}
+.wallet .stars span{color:var(--volt-dk)}
+.wallet .info{flex:1;min-width:0;font-size:.88rem;color:var(--muted)}
+.wallet .info b{color:var(--ink)}
+.wallet .go{font-size:1rem;padding:12px 14px;flex:none}
+.tasks{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.task{background:var(--panel2);border:2px solid var(--line);border-radius:16px;padding:14px;cursor:pointer;text-align:left;display:flex;flex-direction:column;gap:6px;box-shadow:0 5px 0 var(--line);min-width:0}
+.task:disabled{opacity:.45;cursor:not-allowed}
+.task .em{font-size:1.8rem;line-height:1}
+.task b{font-size:1.1rem}
+.task .rule{font-size:.8rem;color:var(--muted);font-weight:700}
+.task .prog{font-size:.8rem;color:var(--blue);font-weight:900}
+.meter2{display:flex;gap:4px}
+.meter2 i{flex:1;height:10px;border-radius:999px;background:var(--line)}
+.meter2 i.on{background:var(--volt)}
+.study{background:var(--panel2);border:2px solid var(--line);border-radius:18px;padding:26px 16px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center}
+.study .word{font-family:var(--display);font-size:2.4rem;line-height:1.15;color:var(--blue);word-break:break-word}
+.study .zh{font-size:1.4rem;font-weight:900}
+.study .tag{font-size:.75rem;color:var(--muted);font-weight:900;letter-spacing:.1em}
+.study .pic{font-size:3.6rem}
+.dotrow{display:flex;gap:6px;justify-content:center}
+.dotrow i{width:12px;height:12px;border-radius:50%;background:var(--line)}
+.dotrow i.on{background:var(--blue)}
+.starpop{position:fixed;left:50%;top:38%;transform:translate(-50%,-50%);font-family:var(--display);font-size:2.4rem;color:var(--ink);background:var(--volt);
+  border-radius:20px;padding:14px 24px;box-shadow:0 8px 0 var(--volt-dk);z-index:60;animation:starpop 1.6s forwards;pointer-events:none;white-space:nowrap}
+@keyframes starpop{0%{opacity:0;transform:translate(-50%,-50%) scale(.5)}15%{opacity:1;transform:translate(-50%,-50%) scale(1.1)}80%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-70%) scale(1)}}
+.books{display:flex;gap:8px;flex-wrap:wrap}
+.book-tab{border:2px solid var(--line);background:var(--panel2);border-radius:999px;padding:6px 16px;font-weight:900;cursor:pointer}
+.book-tab[aria-pressed="true"]{background:var(--blue);border-color:var(--blue);color:#fff}
+.counts{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.counts .go{font-size:1.6rem;padding:18px 8px}
+.counts .go small{display:block;font-family:var(--body);font-size:.75rem;font-weight:700;opacity:.85}
+.voice-note{background:var(--warn-soft);border:2px solid var(--volt-dk);border-radius:12px;padding:8px 12px;font-size:.85rem;font-weight:700}
+.stepper{display:grid;grid-template-columns:72px 1fr 72px;gap:12px;align-items:center;margin:8px 0}
+.stepper .go{font-size:1.8rem;padding:10px}
+.rd-num{text-align:center;font-family:var(--display);font-size:2.6rem;line-height:1}
+.rd-num small{display:block;font-family:var(--body);font-size:.8rem;color:var(--muted);font-weight:700}
+.quick{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:10px 0}
+.quick button{border:2px solid var(--line);background:var(--panel2);border-radius:999px;padding:6px 14px;font-weight:900;cursor:pointer}
+.pin-wrap{display:flex;flex-direction:column;gap:10px;align-items:center}
+.pin{font-family:var(--display);font-size:2rem;letter-spacing:.5em;text-align:center;width:min(240px,100%);padding:10px;border:3px solid var(--line);border-radius:14px;background:#fff;color:var(--ink)}
+.pin.sm{font-size:1.1rem;letter-spacing:.2em;width:100%}
+.pin:focus{outline:none;border-color:var(--blue)}
+.pin-err{color:var(--bad);font-weight:700;min-height:1.4em;margin:6px 0}
+.pset{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+.pset hr{border:0;border-top:1px dashed var(--line);width:100%}
+details+details{margin-top:12px}
+.sent{font-family:var(--display);font-size:1.02rem;line-height:1.45;margin:6px 0 2px}
+.sent mark{background:var(--warn-soft);color:var(--ink);border-bottom:3px solid var(--volt);padding:0 2px;border-radius:3px}
+.fb .lbl{display:inline-block;font-size:.75rem;font-weight:900;color:var(--blue);background:#e3edff;border-radius:6px;padding:1px 6px;margin-right:6px}
+.pt-btn{margin-top:8px;background:transparent;border:2px dashed var(--blue);color:var(--blue);border-radius:10px;padding:6px 12px;font-weight:900;cursor:pointer}
+.points{background:var(--panel2);border:2px solid var(--line);border-radius:14px;padding:12px 14px;text-align:left}
+.points h3{margin:0 0 6px;font-size:1rem}
+.points ul{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:4px;font-size:.92rem}
+.quitbar{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.small-btn{background:var(--panel);border:2px solid var(--line);border-radius:999px;padding:6px 14px;font-weight:700;cursor:pointer;font-size:.85rem}
+@media (max-width:400px){.wallet{flex-wrap:wrap}.wallet .go{flex:1 1 100%}}
+</style>
+
+<canvas id="fx"></canvas>
+<div class="wrap">
+  <header>
+    <div class="hud">
+      <h1 class="logo">充電大作戰<small>集星星換手機時間</small></h1>
+      <span class="chip rank" title="等級">🏅 <b id="rankName">青銅</b></span>
+      <span class="chip streak" title="最高連擊">🔥 <b id="bestCombo">0</b></span>
+      <button class="icon-btn" id="mute" aria-label="音效開關">🔊</button>
+    </div>
+    <div style="margin-top:10px">
+      <div class="xp"><i id="xpBar"></i></div>
+      <div class="xp-label"><span id="xpText">XP 0</span><span id="xpNext">下一級：白銀 100 XP</span></div>
+    </div>
+  </header>
+
+  <!-- 星星錢包 -->
+  <section class="panel wallet" id="wallet">
+    <div class="stars"><span>⭐</span> <b id="starCount">0</b></div>
+    <div class="info">1 顆星 = <b id="perStar">5</b> 分鐘手機時間<br>今天已換 <b id="todayMin">0</b> 分鐘</div>
+    <button class="go volt" id="redeem">兌換 ⏱</button>
+  </section>
+
+  <!-- 首頁 -->
+  <section class="panel" id="home">
+    <div class="label">STEP 1 · 選課</div>
+    <div class="books" id="books"></div>
+    <div class="lessons" id="lessons"></div>
+    <div class="label">STEP 2 · 選任務</div>
+    <div class="lock" id="lockMsg" hidden></div>
+    <div class="tasks">
+      <button class="task" id="goVocab">
+        <span class="em">🔤</span><b>背單字</b>
+        <span class="rule">背 5 個，測驗全對 = ⭐1</span>
+        <span class="prog" id="vocabProg">已背 0 / 0</span>
+      </button>
+      <button class="task" id="goGrammar">
+        <span class="em">🧩</span><b>文法闖關</b>
+        <span class="rule">選 10／20／30 題，每答對 1 題充 1 格，滿 <span id="gNeed">5</span> 格 = ⭐1</span>
+        <div class="meter2" id="gMeterHome"></div>
+      </button>
+    </div>
+  </section>
+
+  <!-- 錯題本 -->
+  <section class="panel book" id="book">
+    <div class="book-head">
+      <h2>📕 錯題本</h2>
+      <div class="count"><span id="wCount">0</span> <small>/ <span id="wLock">6</span> 題上限</small></div>
+    </div>
+    <div class="meter"><i id="wMeter" style="width:0"></i></div>
+    <p>錯題要 <b>連續答對 <span class="clearNeed">2</span> 次</b> 才會清掉，答錯就歸零。每清掉 1 題充 1 格文法能量。錯題累積到 <b class="lockN">10</b> 題時，就不能開始新的背單字或文法闖關（做到一半不會中斷）。</p>
+    <div class="wlist" id="wList"></div>
+    <button class="go hot" id="goReview">開始錯題複習 ▶</button>
+  </section>
+
+  <!-- 背單字：學習卡 -->
+  <section class="panel" id="study" hidden>
+    <div class="quitbar"><span class="label" id="studyLabel">背單字 1 / 5</span><button class="small-btn" data-quit>離開</button></div>
+    <div class="dotrow" id="studyDots"></div>
+    <div class="study">
+      <span class="tag" id="sTag">單字</span>
+      <div class="pic" id="sPic" hidden></div>
+      <div class="word" id="sWord"></div>
+      <button class="speak" id="sSpeak">🔊 聽發音</button>
+      <div class="zh" id="sZh"></div>
+    </div>
+    <div class="row">
+      <button class="go alt" id="sPrev">◀ 上一個</button>
+      <button class="go" id="sNext">下一個 ▶</button>
+    </div>
+  </section>
+
+  <!-- 文法：選題數 -->
+  <section class="panel" id="pick" hidden>
+    <div class="quitbar"><span class="label" id="pickLabel">文法闖關</span><button class="small-btn" data-quit>返回</button></div>
+    <p class="res-title" style="font-size:1.3rem">這次要做幾題？</p>
+    <p class="center hint" id="pickInfo"></p>
+    <div class="counts" id="counts"></div>
+    <div class="points" id="pickPoints"></div>
+  </section>
+
+  <!-- 答題 -->
+  <section class="panel" id="quiz" hidden>
+    <div class="quitbar"><span class="review-tag" id="quizTag">測驗</span><button class="small-btn" data-quit id="quitQuiz">結束</button></div>
+    <div class="bat-row">
+      <div>
+        <div class="qno" id="qno">Q1</div>
+        <div class="combo" id="combo"></div>
+      </div>
+      <div class="battery" aria-label="進度"><div class="cells" id="cells"></div></div>
+    </div>
+    <div class="voice-note" id="voiceNote" hidden>這台裝置找不到英文語音，聽力題的發音可能不準。可以到手機的「設定 → 文字轉語音」下載英文語音。</div>
+    <div class="qcard" id="qcard">
+      <div class="qtype" id="qtype"></div>
+      <div class="pic" id="pic" hidden></div>
+      <p class="prompt" id="prompt"></p>
+      <p class="hint" id="hint" hidden></p>
+      <button class="speak" id="speak" hidden>🔊 再聽一次</button>
+    </div>
+    <div class="opts" id="opts"></div>
+    <div id="fb"></div>
+    <button class="go" id="next" hidden>下一題 ▶</button>
+  </section>
+
+  <!-- 結果 -->
+  <section class="panel" id="result" hidden>
+    <p class="res-title" id="resTitle"></p>
+    <div class="big" id="resBig"></div>
+    <p class="center hint" id="resMsg"></p>
+    <div class="row" id="resBtns"></div>
+  </section>
+
+  <!-- 兌換 -->
+  <section class="panel" id="redeemScr" hidden>
+    <div class="quitbar"><span class="label">兌換手機時間</span><button class="small-btn" data-quit>返回</button></div>
+    <div id="rdStep1">
+      <p class="res-title" style="font-size:1.3rem">要用幾顆星星？</p>
+      <p class="center hint">你有 ⭐ <b id="rdHave">0</b> 顆，1 顆 = <span class="perStarTxt">5</span> 分鐘</p>
+      <div class="stepper">
+        <button class="go alt" id="rdMinus" aria-label="少一顆">－</button>
+        <div class="rd-num"><b id="rdN">1</b><small>顆星</small></div>
+        <button class="go alt" id="rdPlus" aria-label="多一顆">＋</button>
+      </div>
+      <div class="big" id="rdMin">5 分鐘</div>
+      <div class="quick" id="rdQuick"></div>
+      <button class="go volt" id="rdAsk" style="width:100%">請家長確認 ▶</button>
+    </div>
+    <div id="rdStep2" hidden>
+      <p class="res-title" style="font-size:1.3rem" id="rdPinTitle">家長確認</p>
+      <p class="center hint" id="rdPinInfo"></p>
+      <div class="pin-wrap">
+        <input id="rdPin" class="pin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="••••" aria-label="家長密碼">
+        <input id="rdPin2" class="pin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="再輸入一次" aria-label="再輸入一次密碼" hidden>
+      </div>
+      <p class="center pin-err" id="rdErr"></p>
+      <div class="row">
+        <button class="go alt" id="rdBack">◀ 改數量</button>
+        <button class="go" id="rdOk">確認 ⏱</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 計時 -->
+  <section class="panel" id="clock" hidden>
+    <p class="center label">手機剩餘時間</p>
+    <div class="timer" id="timer">0:00</div>
+    <p class="center hint">兌換確認碼（已記錄在家長紀錄）</p>
+    <div class="code" id="clockCode">0000</div>
+    <p class="center hint" id="clockMsg">時間到後要再集星星喔！</p>
+    <button class="go alt" id="stop">提早結束</button>
+  </section>
+
+  <section class="panel" id="parent">
+    <details>
+      <summary>家長紀錄</summary>
+      <p class="hint" style="margin-top:8px">每次兌換都要家長輸入密碼，並記錄在下表。紀錄只存在這台裝置的瀏覽器。</p>
+      <div class="log-wrap"><table class="log"><thead><tr><th>時間</th><th>事件</th><th>星星</th><th>分鐘</th><th>確認碼</th></tr></thead><tbody id="logBody"></tbody></table></div>
+    </details>
+    <details>
+      <summary>家長設定（密碼）</summary>
+      <div class="pset">
+        <p class="hint" id="psInfo">還沒設定家長密碼。孩子第一次兌換時會請家長設定。</p>
+        <input id="psOld" class="pin sm" type="password" inputmode="numeric" maxlength="4" placeholder="舊密碼" aria-label="舊密碼">
+        <input id="psNew" class="pin sm" type="password" inputmode="numeric" maxlength="4" placeholder="新密碼（4 位數）" aria-label="新密碼">
+        <button class="go alt" id="psSave" style="font-size:1rem">變更密碼</button>
+        <p class="pin-err" id="psMsg"></p>
+        <hr>
+        <p class="hint">忘記密碼：重設後密碼會清除，<b>星星也會歸零</b>（避免孩子自己重設換時間）。</p>
+        <button class="go alt" id="psReset" style="font-size:1rem">忘記密碼，重設</button>
+        <div id="psConfirm" hidden><p class="pin-err">確定要重設？星星會歸零。</p><div class="row"><button class="go hot" id="psYes" style="font-size:1rem">確定重設</button><button class="go alt" id="psNo" style="font-size:1rem">取消</button></div></div>
+      </div>
+    </details>
+  </section>
+</div>
+
+<script>
+/* ================= 設定（可自行調整） ================= */
+const VOCAB_N=5;        // 一次背幾個單字
+const GRAMMAR_NEED=5;   // 文法答對幾題換 1 顆星
+const MIN_PER_STAR=5;   // 1 顆星換幾分鐘
+const CLEAR_NEED=2;     // 錯題要連續答對幾次才清除
+const LOCK_AT=10;       // 錯題達幾題時鎖住背單字和文法（只在開始新任務時檢查）
+const COUNT_OPTIONS=[10,20,30]; // 文法闖關可選的題數
+
+/* ================= 題庫 =================
+   新增一課：在 LESSONS 加一個物件
+   vocab: [英文, 中文, 圖示(可省略)]   ← 片語也放這裡
+   grammar: {q:題目, a:答案, o:[選項], ex:解說, h:提示(可省略), t:題型標籤(可省略)}
+   題目裡的 ___ 會顯示成空格 */
+const LESSONS=[
+{ id:"b1l1", no:"B1 · L1", title:"Who's That Young Man?",
+  vocab:[
+   ["family","家人；家庭","👨‍👩‍👧‍👦"],["husband","丈夫"],["wife","妻子"],["cousin","堂（表）兄弟姐妹"],["son","兒子"],
+   ["daughter","女兒"],["parent","雙親之一"],["young","年輕的"],["handsome","英俊的"],["really","真地"],
+   ["classroom","教室","🏫"],["class","班級；課程"],["again","再一次"],["problem","問題"],["warm","溫暖的"],
+   ["farmer","農夫","🧑‍🌾"],["cook","廚師；煮","🧑‍🍳"],["nurse","護理師"],["doctor","醫生","🩺"],["pet","寵物","🐶"],
+   ["at school","在學校"],["the same","相同的"],["Nice to meet you.","很高興認識你。"],["good news","好消息"],["be from","來自……"]
+  ],
+  grammar:[
+   {q:"___ you a doctor?",h:"No, I'm not. I'm a nurse.",a:"Are",o:["Am","Is","Are","Not"],ex:"主詞是 you，be 動詞用 are。"},
+   {q:"I ___ a junior high school student.",a:"am",o:["am","is","are","be"],ex:"I 一定配 am。"},
+   {q:"Mrs. Li ___ a good English teacher.",a:"is",o:["am","are","is","not"],ex:"Mrs. Li 是「她」，配 is。"},
+   {q:"Is your brother a student?",h:"No, ___. He is a cook.",a:"he isn't",o:["he is","he not","he's","he isn't"],ex:"否定簡答：No, he isn't. / No, he's not."},
+   {q:"Are you Bob's wife?",h:"Yes, ___.",a:"I am",o:["I am","I'm","you are","I is"],ex:"肯定簡答不可縮寫：Yes, I am.（不能說 Yes, I'm.）"},
+   {q:"___ the tall woman?",h:"She's my aunt.",a:"Who's",o:["How's","Who's","What's","Who are"],ex:"問「是誰」用 Who；Who is 可縮寫成 Who's。"},
+   {q:"Who ___ that boy?",h:"He is Vincent.",a:"is",o:["be","am","is","are"],ex:"that boy 是單數，用 is。"},
+   {q:"Is the book good?",h:"No, ___ good.",a:"it's not",o:["it is","it's not","you are","you're not"],ex:"the book 用 it 代替；否定：it's not / it isn't。"},
+   {q:"Jessica is ___ English teacher.",a:"an",o:["a","an","the","X"],ex:"English 是母音 E 開頭，用 an。"},
+   {q:"Chris 是一位年輕的農夫。Chris is ___.",a:"a young farmer",o:["a young farmer","young a farmer","a farmer young","young farmer"],ex:"順序：a + 形容詞 + 名詞。"},
+   {q:"Ben is my brother. ___ my cousin.",a:"He isn't",o:["He is","He isn't","It is","It isn't"],ex:"Ben 是哥哥，不是表哥 → He isn't my cousin."},
+   {q:"Mr. Lin is a cook, and ___ wife is a nurse.",a:"his",o:["he","his","her","our"],ex:"Mr. Lin 是男生，「他的」= his。"},
+   {q:"Paul and I are brother and sister. Mr. Wang is ___ father.",a:"our",o:["I","his","her","our"],ex:"Paul 和我 = 我們，「我們的」= our。"},
+   {q:"The two women ___ good mothers.",a:"are",o:["be","am","is","are"],ex:"two women 是複數，用 are。"},
+   {t:"對話",q:"A: Nice to meet you.",h:"B 要怎麼回答？",a:"Nice to meet you, too.",o:["Nice to meet you, too.","I'm fine.","Really?","Good news."],ex:"回應：Nice to meet you, too. 或 You too."},
+   {t:"對話",q:"「怎麼了？」英文怎麼說？",a:"What's the problem?",o:["What's the problem?","Who's the problem?","Where's the news?","What's your name?"],ex:"What's the problem? = 怎麼了？"},
+  ]
+},
+{ id:"b1l2", no:"B1 · L2", title:"What Are These?",
+  vocab:[
+   ["monkey","猴子","🐒"],["sheep","綿羊（複數也是 sheep）","🐑"],["zebra","斑馬","🦓"],["mouse","老鼠（複數 mice）","🐭"],["movie theater","電影院","🎬"],
+   ["Chinese","中國的；中文"],["animal","動物"],["snake","蛇","🐍"],["smart","聰明的"],["true","真的；真實的"],
+   ["people","人們（單數 person）"],["picture","照片；圖畫","🖼️"],["elephant","大象","🐘"],["size","尺寸"],["different","不同的"],["only","僅僅；只"],
+   ["animal sign","生肖"],["birth year","出生年"],["no wonder","難怪"],["people person","人緣好的人"],["What about...?","……怎麼樣？"],["be different from","與……不同"]
+  ],
+  grammar:[
+   {q:"___ are elephants.",h:"（指著遠方的大象）",a:"Those",o:["That","This","Those","It"],ex:"遠的、複數 → those；後面用 are。"},
+   {q:"What are these?",a:"They're mice.",o:["They're mice.","It's a mouse.","They're mouses.","These is mice."],ex:"問 these（複數）→ They're...；mouse 的複數是 mice。"},
+   {q:"These ___ my pictures.",a:"are",o:["am","is","are","be"],ex:"these 是複數，用 are。"},
+   {q:"Is that a snake?",h:"Yes, ___.",a:"it is",o:["it is","that is","it's","they are"],ex:"Is that...? → Yes, it is.（簡答用 it，不縮寫）"},
+   {q:"Are those zebras?",h:"No, ___.",a:"they aren't",o:["they aren't","those aren't","it isn't","they not"],ex:"Are those...? → No, they aren't."},
+   {q:"I have two ___.",a:"boxes",o:["box","boxs","boxes","boxies"],ex:"字尾 x 的名詞加 es：box → boxes。"},
+   {q:"There are three ___ on the farm.",a:"sheep",o:["sheep","sheeps","sheepes","a sheep"],ex:"sheep 單複數同形。"},
+   {q:"This is ___ elephant.",a:"an",o:["a","an","two","these"],ex:"elephant 母音 e 開頭，用 an。"},
+   {q:"My animal sign ___ different from yours.",a:"is",o:["is","are","am","be"],ex:"My animal sign 是單數，用 is；be different from 與……不同。"},
+   {t:"對話",q:"I'm a monkey. What about you?",h:"What about you? 的意思是？",a:"那你呢？",o:["那你呢？","你在哪裡？","你是猴子嗎？","你喜歡什麼？"],ex:"What about you? = 那你呢？"},
+  ]
+},
+{ id:"b1l3", no:"B1 · L3", title:"Let's Get Some Ideas from RoomGPT",
+  vocab:[
+   ["living room","客廳","🛋️"],["bedroom","臥室","🛏️"],["bathroom","浴室","🛁"],["dining room","飯廳"],["please","請"],
+   ["house","房子","🏠"],["quiet","安靜的"],["idea","想法；點子","💡"],["get","獲得"],["some","一些（的）"],
+   ["smartphone","智慧型手機","📱"],["upload","上傳"],["photo","相片","📷"],["choose","選擇"],["type","種類"],
+   ["wait","等待"],["expensive","昂貴的","💰"],["question","問題","❓"],["world","世界","🌍"],["kitchen","廚房","🍳"],
+   ["come in","進入"],["I see.","我了解了。"],["Great idea!","好主意！"],["look at","看……"],["in fact","事實上"],["around the world","世界各地"]
+  ],
+  grammar:[
+   {q:"___ get some ideas from RoomGPT.",a:"Let's",o:["Let's","Let","Lets","Let us to"],ex:"Let's + 原形動詞 = 我們來……吧。"},
+   {q:"Let's ___ the photo.",a:"look at",o:["look at","looks at","looking at","to look at"],ex:"Let's 後面接原形動詞。"},
+   {q:"___ quiet, please.",a:"Be",o:["Be","Is","Are","Am"],ex:"祈使句用原形動詞開頭；形容詞前用 Be。"},
+   {q:"Please ___ in.",a:"come",o:["come","comes","coming","to come"],ex:"祈使句：Please + 原形動詞。"},
+   {q:"___ open the door. It's cold.",a:"Don't",o:["Don't","Not","No","Doesn't"],ex:"否定祈使句：Don't + 原形動詞。"},
+   {q:"Don't ___ late, please.",a:"be",o:["be","is","are","being"],ex:"Don't + be + 形容詞。"},
+   {q:"I'm OK ___ the plan.",a:"with",o:["with","to","for","at"],ex:"be OK with + 事 = 對某事沒問題。"},
+   {t:"對話",q:"A: Let's go to the kitchen.",h:"B 表示贊成：",a:"Great idea!",o:["Great idea!","I see you.","Come in.","In fact."],ex:"Great idea! = 好主意！"},
+   {t:"對話",q:"「我懂了。」英文怎麼說？",a:"I see.",o:["I see.","I look.","I watch.","See you."],ex:"I see. = 我了解了。"},
+  ]
+},
+{ id:"b1l4", no:"B1 · L4", title:"I Can Listen to Their Songs Again and Again",
+  vocab:[
+   ["listen","聽","🎧"],["voice","聲音；歌喉"],["make","製造"],["any","任何（的）"],["noise","噪音"],
+   ["late","晚的；遲到的"],["early","早的"],["song","歌曲","🎵"],["cross","跨越"],["road","道路","🛣️"],
+   ["real","真的；真實的"],["ground","地面"],["design","設計"],["download","下載"],["warn","警告","⚠️"],
+   ["also","而且；也"],["the USA","美國","🇺🇸"],["special","特別的"],["way","方式；方法；路"],["other","其他的"],
+   ["stand up","站起來"],["sit down","坐下"],["take a photo","拍照","📸"],["listen to","聽……"],["again and again","一再地"],
+   ["check out","查看"],["watch out","小心；注意"],["all the time","一直"],["Guess what?","你猜怎麼著？"]
+  ],
+  grammar:[
+   {q:"I can ___ their songs again and again.",a:"listen to",o:["listen to","listens to","listening to","to listen"],ex:"can + 原形動詞；聽某東西 = listen to。"},
+   {q:"___ you sing?",h:"Yes, I can.",a:"Can",o:["Can","Do","Are","Is"],ex:"用 Can 問「會不會」，回答 Yes, I can. / No, I can't."},
+   {q:"He can ___ well.",a:"dance",o:["dance","dances","dancing","to dance"],ex:"can 後面一定接原形動詞，不加 s。"},
+   {q:"Can she swim?",h:"No, ___.",a:"she can't",o:["she can't","she isn't","she don't","she not"],ex:"Can...? → No, she can't."},
+   {q:"I like Jay. I listen to ___ all the time.",a:"him",o:["him","he","his","them"],ex:"動詞後面用受格：he → him。"},
+   {q:"Those are my friends. I often play with ___.",a:"them",o:["them","they","their","us"],ex:"they 的受格是 them。"},
+   {q:"Watch out! You can't ___ the road now.",a:"cross",o:["cross","crosses","crossing","to cross"],ex:"can't + 原形動詞。"},
+   {q:"Please take a photo of ___.",h:"（我們）",a:"us",o:["us","we","our","ours"],ex:"we 的受格是 us。"},
+   {t:"片語",q:"Watch out! 的意思是？",a:"小心！",o:["小心！","看外面！","快一點！","站起來！"],ex:"watch out = 小心；注意。"},
+  ]
+},
+{ id:"b1l5", no:"B1 · L5", title:"What Are You Doing?",
+  vocab:[
+   ["week","星期"],["basketball","籃球","🏀"],["birthday","生日","🎂"],["party","派對","🎉"],["day","日"],
+   ["weekend","週末"],["noon","中午"],["join","參加；加入"],["group","團體"],["chat","談話","💬"],
+   ["tonight","今晚","🌙"],["meeting","會議"],["life","生活"],["prepare","準備"],["o'clock","……點鐘","🕐"],
+   ["city","城市","🏙️"],["sun","太陽","☀️"],["rise","上升"],["shine","照耀；發光"],["dinner","晚餐","🍽️"],
+   ["wake up","醒來"],["look for","尋找","🔍"],["Hurry up.","快一點。"],["by the way","順帶一提"],["group chat","團體談話"],["prepare for","準備……"],["on one's way to","在去……的路上"]
+  ],
+  grammar:[
+   {q:"What are you doing?",h:"I'm ___ a sandwich.",a:"making",o:["making","make","makeing","makes"],ex:"現在進行式：be + V-ing；make 去 e 加 ing。"},
+   {q:"He is ___ basketball now.",a:"playing",o:["playing","play","plays","played"],ex:"is + V-ing。"},
+   {q:"They ___ chatting in the group chat.",a:"are",o:["are","is","am","do"],ex:"They 用 are + V-ing。"},
+   {q:"Is she sleeping?",h:"No, ___.",a:"she isn't",o:["she isn't","she doesn't","she not","she can't"],ex:"Is she...? → No, she isn't."},
+   {q:"What ___ Tom doing?",a:"is",o:["is","are","do","does"],ex:"Tom 是單數，用 is。"},
+   {q:"The boys are ___ in the pool.",a:"swimming",o:["swimming","swiming","swim","swims"],ex:"swim 要重複 m：swimming。"},
+   {q:"Look! The sun ___.",a:"is rising",o:["is rising","rising","is riseing","are rising"],ex:"Look! 表示正在發生；rise 去 e 加 ing。"},
+   {q:"I'm on my way ___ school.",a:"to",o:["to","at","for","in"],ex:"on one's way to... = 在去……的路上。"},
+   {t:"片語",q:"Hurry up! 的意思是？",a:"快一點！",o:["快一點！","起床！","往上看！","順帶一提"],ex:"Hurry up. = 快一點。"},
+  ]
+},
+{ id:"b1l6", no:"B1 · L6", title:"Are There Any Shelves Outside the Door?",
+  vocab:[
+   ["gate","大門"],["restroom","廁所","🚻"],["library","圖書館","📚"],["playground","遊樂場","🛝"],["garden","花園","🌷"],
+   ["rest","休息"],["building","建築物","🏢"],["gym","體育館"],["large","大的；大量的"],["classmate","同班同學"],
+   ["put","放置"],["worry","擔心"],["still","仍然"],["hungry","飢餓的"],["sandwich","三明治","🥪"],
+   ["meaning","意思；意義"],["think","想起；思考；認為","🤔"],["thing","事；物"],["however","然而"],["friendly","友善的"],
+   ["go for a walk","去散步"],["show around","帶……參觀"],["work out","鍛鍊身體","💪"],["after school","放學後"],["find one's feet","適應新環境"],["think about","考慮；想起"],["worry about","擔心"]
+  ],
+  grammar:[
+   {q:"There ___ a library near the gate.",a:"is",o:["is","are","am","be"],ex:"There is + 單數名詞。"},
+   {q:"There ___ some shelves outside the door.",a:"are",o:["are","is","am","has"],ex:"There are + 複數名詞。"},
+   {q:"Are there any students in the gym?",h:"Yes, ___.",a:"there are",o:["there are","they are","there is","it is"],ex:"Are there...? → Yes, there are."},
+   {q:"Is there a garden at your school?",h:"No, ___.",a:"there isn't",o:["there isn't","it isn't","there aren't","isn't there"],ex:"Is there...? → No, there isn't."},
+   {q:"___ there any sandwiches?",a:"Are",o:["Are","Is","Do","Have"],ex:"sandwiches 是複數，用 Are there...?"},
+   {q:"There aren't ___ books on the desk.",a:"any",o:["any","some","a","an"],ex:"否定句和問句用 any；肯定句用 some。"},
+   {q:"There ___ many people in the playground.",a:"are",o:["are","is","am","be"],ex:"people 是複數，用 are。"},
+   {q:"「我還是很餓。」I'm ___ hungry.",a:"still",o:["still","only","also","really"],ex:"still = 仍然。"},
+   {q:"Don't ___ about it.",a:"worry",o:["worry","worries","worrying","to worry"],ex:"Don't + 原形動詞；worry about 擔心。"},
+  ]
+},
+{ id:"b2l1", no:"B2 · L1", title:"Alan Plays Basketball Every Day",
+  vocab:[
+   ["get up","起床","⏰"],["teeth","牙齒（單數 tooth）","🦷"],["face","臉"],["exercise","運動"],["breakfast","早餐","🍳"],
+   ["bath","泡澡；洗澡","🛁"],["homework","家庭作業","📝"],["baseball","棒球","⚾"],["soccer","足球","⚽"],["video game","電玩遊戲","🎮"],
+   ["practice","練習"],["every","每一"],["team","隊伍"],["know","知道"],["player","運動員；選手"],
+   ["grade","成績"],["test","考試"],["study","學習；研讀","📚"],["either","也（用於否定句）"],["must","一定；必須"],
+   ["enjoy","享受"],["then","那麼；然後；當時"],["ticket","票；券","🎫"],["together","一起"],["how much","多少錢"],
+   ["hundred","百"],["dollar","元","💵"],["badminton","羽毛球","🏸"],["tennis","網球","🎾"],["ask","問；要求"],
+   ["happen","發生"],["fast","快速的"],["move","移動；搬家"],["hit","擊；打"],["fun","樂趣；有趣的"],
+   ["win","贏","🏆"],["lose","輸掉；失去"],["side","邊；面"],["touch","接觸；觸碰"],["last","最後的；前一個的"],["point","得分；觀點"]
+  ],
+  grammar:[
+   {t:"字彙選擇",q:"We ___ tennis in the park every morning. We want to win the game.",a:"practice",o:["study","happen","practice","touch"],ex:"practice 練習。"},
+   {t:"字彙選擇",q:"Tom can't go to the basketball game. He doesn't have a ___.",a:"ticket",o:["menu","ticket","face","grade"],ex:"ticket 票。"},
+   {t:"字彙選擇",q:"The watch is very cool, and it's only 1,000 NT ___.",a:"dollars",o:["dollars","players","points","exercises"],ex:"NT dollars 新臺幣元。"},
+   {t:"字彙選擇",q:"I can't go to the movies with you tonight. I have a lot of ___ to do.",a:"homework",o:["bath","tennis","homework","sides"],ex:"homework 家庭作業。"},
+   {t:"字彙選擇",q:"It's a beautiful morning, and the Lin family is having ___ in the dining room.",a:"breakfast",o:["homework","practice","teeth","breakfast"],ex:"早上在飯廳吃早餐 breakfast。"},
+   {q:"I like dogs and rabbits, but my brothers ___ like any animals.",a:"don't",o:["doesn't","aren't","don't","do"],ex:"my brothers 是複數，否定用 don't + 原形動詞。"},
+   {q:"Rachael is a junior high school teacher. She ___ 28 students in her class.",a:"has",o:["has","have","is having","having"],ex:"She 是第三人稱單數，have → has。"},
+   {q:"The boy is very tall. He must ___ a great basketball player.",a:"be",o:["be","is","do","to be"],ex:"must + 原形動詞，is 的原形是 be。"},
+   {q:"Michael: Do you and your brothers play sports in the morning?",h:"Rick: Yes, we ___, but we only play sports on weekends.",a:"do",o:["can","do","don't","are"],ex:"Do you...? → Yes, we do."},
+   {q:"Gina: What ___ your son like?",h:"Dan: He likes apples and strawberries.",a:"does",o:["does","do","is","are"],ex:"your son 是第三人稱單數，用 does。"},
+   {q:"I have a lot of tests, and I don't have time ___ video games.",a:"for",o:["in","for","to","about"],ex:"have time for + 名詞 = 有時間做……"},
+   {q:"Fred: Does your brother ___ dancing at home?",h:"Mina: No, he does that at school.",a:"practice",o:["to practice","practices","practicing","practice"],ex:"Does + 主詞 + 原形動詞。"},
+   {q:"Vivian: What does Mina ___ every night?",h:"David: She reads books about animals.",a:"read",o:["read","reads","reading","to read"],ex:"What does + 主詞 + 原形動詞？"},
+   {q:"Nancy: ___ your friends study hard?",h:"Rita: Yes. They are good students.",a:"Do",o:["Does","Are","Do","Is"],ex:"your friends 是複數，一般動詞問句用 Do。"},
+   {q:"David: Does Ginny have breakfast every morning?",h:"Kim: Yes, she ___. She likes to have breakfast at home.",a:"does",o:["can","do","is","does"],ex:"Does she...? → Yes, she does."},
+   {q:"Gina: What ___ you ___ on weekends?",h:"Eva: I cook with my mom and read books with my dad.",a:"do; do",o:["are; do","do; doing","do; do","are; doing"],ex:"What do you do...? 第一個 do 是助動詞，第二個是「做」。"},
+   {q:"Sharon doesn't ___ her students' photos to IG every day.",a:"upload",o:["upload","uploads","uploading","to upload"],ex:"doesn't + 原形動詞。"},
+   {q:"Peter: Oh, no! I don't have any money with me.",h:"Tim: That's OK. The dinner is ___ me.",a:"on",o:["under","about","for","on"],ex:"It's on me. = 我請客。"},
+   {q:"___ worry ___ your sons. They are big boys, and they are very smart.",a:"Don't; about",o:["Doesn't; about","Don't; for","Can't; for","Don't; about"],ex:"Don't worry about... 不要擔心……（祈使句）"},
+   {q:"I ___ to the library every Sunday, but my brother ___.",a:"go; doesn't",o:["go; isn't","goes; doesn't","go; doesn't","goes; don't"],ex:"I go；my brother 是第三人稱單數，用 doesn't。"},
+   {t:"對話",q:"Henry: I really want to go to the new park.",h:"Kate: ___ Let's go together next weekend.",a:"Me too!",o:["It's on me.","That must be hard.","Don't worry about me.","Me too!"],ex:"Me too! = 我也是！"},
+   {t:"對話",q:"Kevin: ___",h:"Gina: I don't know. It's a gift from my dad.",a:"How much is your watch?",o:["Let's go together.","Do you like your watch?","How much is your watch?","Does your dad know?"],ex:"禮物所以不知道價錢 → 問 How much...?"},
+   {t:"對話",q:"David: I have an English test this Friday, but I'm not good at English.",h:"Shelly: ___",a:"Don't worry. I can study with you.",o:["It's on me. Please don't worry.","Don't worry. I can study with you.","Let's ask Joe about the sport.","I don't have English class today, either."],ex:"安慰並幫忙：Don't worry. I can study with you."},
+   {q:"My sister ___ her teeth every morning.",a:"brushes",o:["brush","brushes","brushing","to brush"],ex:"字尾 sh 加 es：brush → brushes。"},
+   {q:"Tom ___ like soccer. He likes baseball.",a:"doesn't",o:["don't","doesn't","isn't","aren't"],ex:"Tom 是第三人稱單數，否定用 doesn't。"},
+   {q:"___ Amy play badminton after school?",a:"Does",o:["Do","Does","Is","Are"],ex:"Amy 是第三人稱單數，問句用 Does。"},
+   {q:"Does your dad watch TV at night?",h:"No, ___.",a:"he doesn't",o:["he doesn't","he don't","he isn't","she doesn't"],ex:"Does he...? → No, he doesn't."},
+   {q:"My brother ___ video games every day.",a:"plays",o:["play","plays","playing","is play"],ex:"第三人稱單數，動詞加 s。"},
+   {q:"Kevin ___ his homework after dinner.",a:"does",o:["do","does","doing","dos"],ex:"do 的第三人稱單數是 does。"},
+   {q:"What does Alan do every day?",a:"He plays basketball.",o:["He plays basketball.","He play basketball.","He is play basketball.","He playing basketball."],ex:"He + 動詞加 s。"},
+  ]
+},
+{ id:"b2l2", no:"B2 · L2", title:"How Often Do You Clean Your Room?",
+  vocab:[
+   ["housework","家事"],["mop","拖地；拖把","🧹"],["floor","地板；樓層"],["clean","打掃；乾淨的"],["trash","垃圾","🗑️"],
+   ["do the dishes","洗碗盤","🍽️"],["set","布置；設定"],["street","街道"],["market","市場"],["town","城鎮"],
+   ["anytime","任何時候"],["seldom","很少"],["always","總是"],["habit","習慣"],["never","從不"],
+   ["break","打破；休息"],["often","時常"],["sometimes","有時候"],["sure","確定的；當然"],["place","地方"],
+   ["usually","通常"],["dirty","髒的"],["month","月"],["believe","相信"],["once","一次"],
+   ["twice","兩次"],["terrible","可怕的；糟糕的"],["how often","多常"],["cellphone","手機","📱"],["following","下列事物"],
+   ["may / might","可能；也許"],["change","改變"],["more","更多的"],["germ","細菌","🦠"],["toilet seat","馬桶座","🚽"],
+   ["answer","答案；回答"],["for example","舉例來說"],["free","空閒的；免費的"],["finger","手指","☝️"],["kill","殺"],["time","次數"],["work","工作"]
+  ],
+  grammar:[
+   {t:"字彙選擇",q:"Benson is fat now. He has to ___ his eating habits.",a:"change",o:["follow","move","change","kill"],ex:"change 改變。"},
+   {t:"字彙選擇",q:"Leo's grade on the math test is ___. He is very sad about that.",a:"terrible",o:["free","terrible","dirty","thirsty"],ex:"terrible 糟糕的。"},
+   {t:"字彙選擇",q:"The dirty water is ___ the fish in the lake. What can we do?",a:"killing",o:["winning","checking","killing","moving"],ex:"kill 殺死。"},
+   {t:"字彙選擇",q:"Where's the restroom? I want to use the ___.",a:"toilet",o:["germ","answer","market","toilet"],ex:"toilet 馬桶。"},
+   {t:"字彙選擇",q:"I have a ___ of reading at night. I read with my husband every night.",a:"habit",o:["habit","finger","market","floor"],ex:"habit 習慣。"},
+   {q:"Dan ___ late for school. He is a good student.",a:"is never",o:["never is","does never","is never","never does"],ex:"頻率副詞放在 be 動詞後面。"},
+   {q:"Kim: ___ do you walk Lucky?",h:"Mike: I walk it every morning.",a:"How often",o:["Which","Whose","What time","How often"],ex:"回答「每天早上」→ 問頻率 How often。"},
+   {q:"Sally has a lot of work. She ___ time for exercise.",a:"seldom has",o:["seldom has","has seldom","does seldom","is seldom"],ex:"頻率副詞放在一般動詞前面。"},
+   {q:"John likes sports. ___, he plays soccer, baseball, or basketball every day.",a:"For example",o:["For example","Break his habit","From now on","For the following"],ex:"For example 舉例來說。"},
+   {q:"Let's move these chairs ___ Class 708 ___ Class 702.",a:"from; to",o:["from; for","over; to","from; to","to; for"],ex:"from A to B 從 A 到 B。"},
+   {q:"The girl there might ___ Lily's sister. They are both beautiful and tall.",a:"be",o:["to be","is","being","be"],ex:"might + 原形動詞。"},
+   {q:"I sometimes read books in the living room. I ___ read in my bedroom.",a:"don't always",o:["always don't","don't never","don't always","does never"],ex:"don't always = 不總是（部分否定）。"},
+   {q:"Nick: How often do you go to the library?",h:"Leo: I go there about ___ a month.",a:"five times",o:["five times","once time","two time","three"],ex:"次數：once, twice, three times, five times。"},
+   {q:"Please don't use your cellphone ___ work. It's not good.",a:"at",o:["at","on","over","in"],ex:"at work 在工作時。"},
+   {q:"___ an apple on the table. Whose is it?",a:"There is",o:["There does","There is","There has","There often"],ex:"There is + 單數名詞。"},
+   {q:"Rita ___ a bath. She can't talk to you now.",a:"is taking",o:["does takes","take","is taking","can take"],ex:"現在正在做 → is + V-ing。"},
+   {q:"Mr. Henderson works with some doctors from the USA. He has a big meeting with them ___.",a:"every two months",o:["two every months","every three times","a month two times","every two months"],ex:"every two months 每兩個月。"},
+   {q:"Michael: Does Dan always win basketball games?",h:"Nathan: Yes, he ___. He is a great player.",a:"always does",o:["always does","does always","always win","wins always"],ex:"簡答：頻率副詞放在助動詞前面 → always does。"},
+   {q:"Rachel usually goes out with friends ___ her free time.",a:"in",o:["on","in","at","for"],ex:"in one's free time 在空閒時。"},
+   {q:"Rita: How often ___ Gina ___ the floor?",h:"Ben: Three times a week.",a:"does; mop",o:["does; mops","is; mopping","does; mop","do; mop"],ex:"How often does + 主詞 + 原形動詞？"},
+   {t:"對話",q:"Nick: I always study in the library. ___",h:"Kim: I like to study at home. My brother can teach me.",a:"What about you?",o:["Who can teach you?","How often do you study?","Are you sure?","What about you?"],ex:"What about you? 那你呢？"},
+   {t:"對話",q:"Helen: How often do they clean the street?",h:"Gary: ___",a:"Every two days.",o:["No, they don't.","The street is beautiful.","Every two days.","I often go to that street."],ex:"How often 問頻率 → Every two days."},
+   {t:"對話",q:"David: The white pencil box is Kate's.",h:"Ray: ___ Isn't her pencil box green?",a:"Are you sure?",o:["How much is it?","Are you sure?","What about you?","Can you believe me?"],ex:"Are you sure? 你確定嗎？"},
+   {q:"My mom ___ cooks dinner. She cooks every day.",a:"always",o:["always","never","seldom","sometimes"],ex:"每天都煮 → always 總是。"},
+   {q:"___ does Amy mop the floor?",h:"Twice a week.",a:"How often",o:["How often","How much","What time","Where"],ex:"回答次數 → How often。"},
+   {q:"「我一週游泳一次。」I go swimming ___.",a:"once a week",o:["once week","one time week","once a week","a week once"],ex:"once a week 一週一次。"},
+   {q:"They ___ take out the trash on Sundays.",a:"usually",o:["usually","are usually","usual","does usually"],ex:"頻率副詞放在一般動詞前面。"},
+   {q:"She is ___ happy.",a:"always",o:["always","does always","always is","do always"],ex:"be 動詞後面放頻率副詞：is always。"},
+   {q:"Do you often play video games?",h:"No, I ___.",a:"seldom do",o:["seldom do","do seldom","am seldom","seldom am"],ex:"簡答：頻率副詞放在 do 前面。"},
+   {q:"How often does Ben clean his room?",a:"He cleans it twice a week.",o:["He cleans it twice a week.","He clean it twice a week.","He cleans it two week.","He is clean it twice."],ex:"He cleans... twice a week."},
+  ]
+},
+{ id:"b2l3", no:"B2 · L3", title:"What's the Date Today?",
+  vocab:[
+   ["January","一月"],["February","二月"],["March","三月"],["April","四月"],["May","五月"],
+   ["June","六月"],["July","七月"],["August","八月"],["September","九月"],["October","十月"],
+   ["November","十一月"],["December","十二月"],["Easter","復活節","🐣"],["Halloween","萬聖節前夕","🎃"],["Thanksgiving","感恩節","🦃"],
+   ["Christmas","聖誕節","🎄"],["holiday","節日；假期"],["race","賽跑；競賽","🏃"],["whose","誰的"],["when","何時"],
+   ["second","第二；秒"],["date","日期；約會","📅"],["third","第三（的）"],["away","離……之遠；離開"],["first","第一（的）；首先"],
+   ["runner","跑者"],["over there","在那邊"],["take care of","照顧"],["play the role of","扮演……的角色"],["letter","信件；字母","✉️"],
+   ["dear","親愛的"],["busy","忙碌的"],["miss","想念"],["everything","一切事物"],["love","愛","❤️"]
+  ],
+  grammar:[
+   {t:"字彙選擇",q:"March is the ___ month of the year.",a:"third",o:["first","second","third","last"],ex:"三月是第三個月 third。"},
+   {t:"字彙選擇",q:"Peter: What are you doing in your bedroom, Sally?",h:"Sally: I'm writing a(n) ___ to Mia. I miss her.",a:"letter",o:["letter","housework","idea","race"],ex:"letter 信。"},
+   {t:"字彙選擇",q:"It's February now, and the baseball game is in ___. We still have three months to prepare.",a:"May",o:["March","May","January","November"],ex:"二月再過三個月是五月 May。"},
+   {t:"字彙選擇",q:"Johnny practices for the ___ every day. He can't lose it again.",a:"race",o:["floor","runner","letter","race"],ex:"race 比賽。"},
+   {t:"字彙選擇",q:"Sorry, Miss Jones is ___. She can't talk to you now.",a:"busy",o:["dear","second","busy","whose"],ex:"busy 忙碌的。"},
+   {q:"The basketball game is ___ June 25th. Do you want to watch it with me?",a:"on",o:["for","in","on","at"],ex:"日期前面用 on。"},
+   {q:"___ is the group meeting? Is it next Monday?",a:"When",o:["Whose","Who","Where","When"],ex:"問時間 → When。"},
+   {q:"The big white dog is not ___. My dog is white, but it is small.",a:"mine",o:["mine","me","my","our"],ex:"所有格代名詞：mine = my dog。"},
+   {q:"Kevin: What's the date today?",h:"Fred: It's ___.",a:"September 6th",o:["on August 12th","September 6th","October fifteen","Wednesday"],ex:"問日期，回答月份 + 序數（不用 on）。"},
+   {q:"___ the USA, Father's Day is ___ the third Sunday in June.",a:"in; on",o:["in; over","on; for","on; in","in; on"],ex:"in + 國家；on + 某一天。"},
+   {q:"___ blanket is it? Is it Steve's?",a:"Whose",o:["Where","When","Whose","What"],ex:"問「誰的」→ Whose。"},
+   {q:"I have time this weekend. Let's ___ lunch or dinner together.",a:"have",o:["have","having","to have","has"],ex:"Let's + 原形動詞。"},
+   {q:"Nancy: My English grade is good. Thanks ___ your help.",a:"for",o:["of","in","about","for"],ex:"Thanks for... 謝謝……"},
+   {q:"Michael can't take the book away. It's not ___.",a:"his",o:["him","his","his'","he"],ex:"his 也是所有格代名詞 = his book。"},
+   {q:"Nick: I'm thirsty. Where can I get some juice?",h:"Kelly: You can go to ___ floor.",a:"the third",o:["third","three","the third","the three"],ex:"序數前面加 the：the third floor。"},
+   {q:"Helen: ___ the date today?",h:"Tom: I am not sure. Is today the sixth or the seventh?",a:"What's",o:["What's","How's","When's","Whose"],ex:"What's the date today? 今天幾月幾號？"},
+   {q:"Tina's birthday is ___. We don't have time to prepare a special gift for her.",a:"10 days away",o:["away 10 days","on tenth","for 10 days","10 days away"],ex:"時間 + away = 還有……就到了。"},
+   {q:"James: ___ the robot for Rose's son?",h:"Tim: Yes, it's for his birthday.",a:"Isn't",o:["Doesn't","Isn't","Can't","Don't"],ex:"否定問句 Isn't the robot...?"},
+   {q:"The students are studying in the classroom. Don't ___ inside.",a:"chat",o:["chat","chats","to chat","chatting"],ex:"Don't + 原形動詞。"},
+   {q:"The red cup is Sally's, and the blue cup ___.",a:"is also hers",o:["also is","also hers","is also hers","hers also"],ex:"also 放在 be 動詞後；hers = her cup。"},
+   {t:"對話",q:"Kate: Many people are standing in line. ___",h:"Eric: He is Mike. He is waiting to get the museum tickets.",a:"Who's the fourth boy over there?",o:["Where is the museum?","Isn't the museum big and beautiful?","Mike goes to the museum every weekend.","Who's the fourth boy over there?"],ex:"回答「他是 Mike」→ 問 Who's...?"},
+   {t:"對話",q:"Peter: Doesn't your brother like hot dogs?",h:"Emma: ___, but he is not hungry now.",a:"You're right",o:["You're right","I see","In my eyes","We are fine here"],ex:"You're right. 你說得對。"},
+   {t:"對話",q:"Mom: No, we can't have a pet dog. We don't have time for that.",h:"Nathan: Please, Mom! ___",a:"I can take good care of it.",o:["Thanks for everything.","Isn't the cute dog for me?","I can take good care of it.","Whose idea is it?"],ex:"take care of 照顧。"},
+   {q:"Christmas is ___ December 25th.",a:"on",o:["on","in","at","for"],ex:"日期前用 on。"},
+   {q:"___ pen is this?",h:"It's Tom's.",a:"Whose",o:["Whose","Who","Who's","Where"],ex:"問「誰的」→ Whose。"},
+   {q:"This bag is ___.（我的）",a:"mine",o:["mine","my","me","I"],ex:"mine = my bag。"},
+   {q:"Today is May ___.（第二天）",a:"second",o:["second","two","twice","secondth"],ex:"日期用序數：second。"},
+   {q:"The race is ___ March.",a:"in",o:["in","on","at","for"],ex:"月份前用 in。"},
+   {q:"These books aren't ours. They're ___.",a:"theirs",o:["theirs","their","them","they"],ex:"theirs = their books。"},
+   {q:"Which day is the twelfth?",h:"「12 號」英文是？",a:"the twelfth",o:["the twelfth","the twelve","the twelveth","twelve"],ex:"twelve → twelfth（ve 改 f 加 th）。"},
+  ]
+},
+{ id:"b2l4", no:"B2 · L4", title:"How Much Cake Do You Want?",
+  vocab:[
+   ["food","食物"],["bottle","瓶子","🍼"],["water","水；澆水","💧"],["bowl","碗","🥣"],["rice","米；飯","🍚"],
+   ["plate","盤子"],["noodle","麵條","🍜"],["pie","派","🥧"],["piece","塊；片；張"],["glass","玻璃杯；玻璃","🥛"],
+   ["gram","公克"],["kilogram","公斤"],["salt","鹽","🧂"],["sugar","糖"],["a few","幾個；一些"],
+   ["a little","少量的；一點"],["can","（鐵、鋁）罐","🥫"],["pancake","鬆餅","🥞"],["help","幫助"],["how many","多少（個）"],
+   ["give","給"],["need","需要"],["flour","麵粉"],["of course","當然"],["which","哪一個"],
+   ["enough","足夠的"],["yummy","美味的"],["teach","教"],["easy","容易的"],["delicious","美味的"],
+   ["difficult","困難的"],["add","添加"],["mix","混合"],["heat","加熱；熱"],["pan","平底鍋","🍳"],
+   ["butter","奶油","🧈"],["round","圓形的"],["batter","糊狀物"],["until","直到……為止"],["brown","棕色（的）"],["both","兩者（都）"],["ready","準備好的"]
+  ],
+  grammar:[
+   {t:"字彙選擇",q:"___ blue and yellow together, and you can get the color green.",a:"Mix",o:["Water","Miss","Heat","Mix"],ex:"mix 混合。"},
+   {t:"字彙選擇",q:"Can we have ten chairs here? Five chairs are not ___.",a:"enough",o:["delicious","easy","enough","round"],ex:"enough 足夠的。"},
+   {t:"字彙選擇",q:"My pet dog likes everything ___. He likes soccer balls, basketballs, and watermelons.",a:"round",o:["yummy","round","easy","dear"],ex:"球和西瓜都是圓的 round。"},
+   {t:"字彙選擇",q:"Uncle Sam is a farmer. He ___ his apple trees and papaya trees every day.",a:"waters",o:["heats","adds","mixes","waters"],ex:"water 當動詞是「澆水」。"},
+   {t:"字彙選擇",q:"Basketball is ___ for Jeff. He's sure to win next Friday's game.",a:"easy",o:["difficult","easy","yummy","brown"],ex:"easy 容易的。"},
+   {q:"Kim: How ___ milk do you give your son every morning?",h:"Leo: I give him a big cup.",a:"much",o:["some","many","much","any"],ex:"milk 不可數 → How much。"},
+   {q:"Robert likes orange juice. He drinks three ___ of ___ every day.",a:"cups; juice",o:["cup; juices","cups; juice","cup; juice","cups; juices"],ex:"three cups of juice：cup 加 s，juice 不可數不加 s。"},
+   {q:"Rachel: How many ___ are there on the table?",h:"James: There are three.",a:"plates",o:["butter","glass","flour","plates"],ex:"How many + 可數名詞複數。"},
+   {q:"Sally wants to make a cake. She needs ___ eggs and ___ flour.",a:"two; some",o:["two; some","any; two","two; any","some; two"],ex:"egg 可數用數字；flour 不可數用 some。"},
+   {q:"Thanks ___ your help. English is easy for me now.",a:"for",o:["about","over","for","of"],ex:"Thanks for... 謝謝……"},
+   {q:"Nathan: How much time ___ Lisa still ___?",h:"Helen: She still has two hours.",a:"does; have",o:["does; have","do; have","does; has","do; has"],ex:"How much time does + 主詞 + 原形動詞？"},
+   {q:"Fee: Can I have some water? It's so hot here.",h:"Mia: Sure. Here ___.",a:"you are",o:["are you","you are","to you","is it"],ex:"Here you are. 拿去吧。"},
+   {q:"Gina: ___ can I use, the red pen or the blue pen?",h:"Dan: You can use both.",a:"Which",o:["What","Which","How","Where"],ex:"二選一 → Which。"},
+   {q:"___ only two apples on the table, but I need five to make the pie.",a:"There are",o:["There is","There do","There does","There are"],ex:"two apples 複數 → There are。"},
+   {q:"Sherry: ___ bedrooms are there in your house?",h:"Ken: Only two.",a:"How many",o:["How much","How","How many","What many"],ex:"bedrooms 可數 → How many。"},
+   {q:"First, ___ the book and read. Next, ___ about your ideas.",a:"open; talk",o:["open; to talk","opening; talking","to open; talk","open; talk"],ex:"祈使句用原形動詞開頭。"},
+   {q:"My mom always writes down the dates ___ the back side of every photo.",a:"on",o:["on","to","under","of"],ex:"on the back side 在背面上。"},
+   {q:"My father is busy. He works ___ 8 o'clock every night.",a:"until",o:["until","and","but","then"],ex:"until 直到……為止。"},
+   {q:"Mr. Lee is walking in the front, and the ___ are following him.",a:"two groups of students",o:["three groups students","two groups of students","two groups of student","three group of students"],ex:"two groups of students：group 和 student 都要複數。"},
+   {q:"Jill: How much tea do you drink at night?",h:"Leo: Only ___.",a:"a cup",o:["teas","tea","a cup","cups of"],ex:"回答數量：a cup（一杯）。"},
+   {t:"對話",q:"Kathy: ___",h:"Helen: Please help me heat up the pan first.",a:"What can I do for you?",o:["How many pans are there?","Where is the pan?","Can I use your pan?","What can I do for you?"],ex:"What can I do for you? 我能幫你做什麼？"},
+   {t:"對話",q:"Zoe: ___, apple juice or orange juice?",h:"Ben: Apple juice. Apples are my favorites.",a:"Which do you like",o:["Can you drink juice","How much do you want","Which do you like","Is there any juice"],ex:"二選一用 Which。"},
+   {t:"對話",q:"Sophia: It's cold here. Can I have a blanket?",h:"Tim: ___",a:"Of course. Here you are.",o:["Of course. Here you are.","I have a box of blankets.","Two blankets are not enough.","Thanks for your help."],ex:"Of course. Here you are. 當然，給你。"},
+   {q:"I need ___ salt for the soup.",a:"a little",o:["a little","a few","many","a"],ex:"salt 不可數 → a little。"},
+   {q:"There are ___ eggs in the box.",a:"a few",o:["a few","a little","much","a"],ex:"eggs 可數 → a few。"},
+   {q:"How ___ apples do you want?",a:"many",o:["many","much","any","some"],ex:"apples 可數 → How many。"},
+   {q:"How much ___ the pie?",h:"It's 80 dollars.",a:"is",o:["is","are","do","does"],ex:"問價錢：How much is + 單數？"},
+   {q:"I want two ___ water.",a:"bottles of",o:["bottles","bottle","bottles of","bottle of"],ex:"two bottles of water 兩瓶水。"},
+   {q:"Add ___ sugar, please.",a:"some",o:["some","many","a few","a"],ex:"sugar 不可數，肯定句用 some。"},
+   {q:"Mix the flour and eggs ___ the batter is ready.",a:"until",o:["until","then","but","so"],ex:"until 直到……為止。"},
+  ]
+},
+{ id:"b2l5", no:"B2 · L5", title:"You Helped Me a Lot",
+  vocab:[
+   ["science","科學","🔬"],["camp","營隊；露營","⛺"],["visit","造訪；拜訪"],["art","藝術；美術","🎨"],["museum","博物館","🏛️"],
+   ["ago","……之前"],["computer","電腦","💻"],["before","在……之前；以前"],["yesterday","昨天"],["surf the Internet","上網"],
+   ["minute","分鐘"],["hour","小時","⏳"],["story","故事","📖"],["lazy","懶惰的"],["even","甚至"],
+   ["should","應該"],["wrong","錯誤的"],["so","很；那麼"],["just","就；恰好；剛剛"],["later","稍後"],
+   ["save","拯救；省下；儲存"],["share","分享"],["snack","點心","🍪"],["climb","攀爬","🧗"],["kid","開玩笑；小孩"],
+   ["explain","解釋"],["leftovers","剩菜"],["hide-and-seek","捉迷藏"],["wise","有智慧的"],["hunt","打獵"],
+   ["learn","學習；得知"],["in the end","最後"]
+  ],
+  grammar:[
+   {t:"字彙選擇",q:"We still have time. The test is this Friday, and it's ___ Monday now.",a:"just",o:["then","once","just","either"],ex:"just 才、只是。"},
+   {t:"字彙選擇",q:"Mr. Wang is a good teacher. His students ___ a lot in his class.",a:"learn",o:["learn","hunt","save","climb"],ex:"learn 學習。"},
+   {t:"字彙選擇",q:"Mr. and Mrs. Brown usually ___ different cities and towns to enjoy their food.",a:"visit",o:["share","save","learn","visit"],ex:"visit 造訪。"},
+   {t:"字彙選擇",q:"Johnny is nice to his brothers. He ___ toys and books with them.",a:"shares",o:["hunts","visits","shares","explains"],ex:"share 分享。"},
+   {t:"字彙選擇",q:"Leo isn't good at math. His answers to the questions were all ___.",a:"wrong",o:["wise","wrong","lazy","brown"],ex:"wrong 錯誤的。"},
+   {q:"Those small T-shirts ___ mine, but now they ___ my sister's.",a:"were; are",o:["were; were","are; were","are; are","were; are"],ex:"以前 were；現在 are。"},
+   {q:"Gary didn't ___ his bedroom last night. It is still dirty now.",a:"clean",o:["clean","cleaned","cleaning","cleans"],ex:"didn't + 原形動詞。"},
+   {q:"Rick: Did Nancy ___ any salt to the fish pie?",h:"Ben: Maybe she didn't. She was in a hurry.",a:"add",o:["adds","adding","added","add"],ex:"Did + 主詞 + 原形動詞？"},
+   {q:"James: Were you a teacher?",h:"Dan: Yes, I ___ an English teacher.",a:"was",o:["am","were","was","do"],ex:"I 的過去式 be 動詞是 was。"},
+   {q:"My brother always studied and ___ to music at the same time.",a:"listened",o:["listens","listening","to listen","listened"],ex:"and 前後時態一致：studied, listened。"},
+   {q:"Nathan: Did Emma show you the photo of her new pet?",h:"Sharon: ___ What is it?",a:"No, she didn't.",o:["No, she doesn't.","Yes, she did.","No, she didn't.","Yes, Emma does."],ex:"還問「是什麼」→ 沒看過：No, she didn't."},
+   {q:"Jeremy's home was in Taichung, but mine ___.",a:"wasn't",o:["isn't","were not","wasn't","aren't"],ex:"過去式、mine 單數 → wasn't。"},
+   {q:"Doris: What ___ Shelly ___ this morning?",h:"Frank: She prepared breakfast for her family.",a:"did; do",o:["does; do","did; do","is; doing","can; do"],ex:"過去：What did + 主詞 + do？"},
+   {q:"___ her sister's help, Lisa saved 3,000 NT dollars for a new smartphone.",a:"With",o:["For","Over","With","About"],ex:"With one's help 在某人的幫忙下。"},
+   {q:"How many students ___ there in the museum then? 25 or 30?",a:"were",o:["were","is","are","was"],ex:"then（當時）、students 複數 → were。"},
+   {q:"Rachel ___ join the soccer practice yesterday. She was too busy.",a:"didn't",o:["did","doesn't","didn't","does"],ex:"yesterday 過去式否定 → didn't。"},
+   {q:"I can help you look ___ your watch. I am sure we can find it.",a:"for",o:["up","for","in","of"],ex:"look for 尋找。"},
+   {q:"Jenny: ___ old ___ your sisters then?",h:"Dan: Kathy was only 3, and Lilly was 6.",a:"How; were",o:["What; were","How; was","How; were","What; was"],ex:"How old 問年紀；sisters 複數 → were。"},
+   {q:"Larry didn't go to the market last night, but his friends ___.",a:"did",o:["did","were","go","do"],ex:"代替 went 的簡短說法 → did。"},
+   {q:"There were a lot of beautiful old streets in this town ___.",a:"ten years ago",o:["in 2030","years before","next five years","ten years ago"],ex:"were 過去式 → ten years ago。"},
+   {t:"對話",q:"Mike: Where were you last Friday?",h:"Ben: ___",a:"I was at home with my parents.",o:["I was at home with my parents.","I am watching TV at home.","Last Friday was my birthday.","I was an English teacher."],ex:"問地點 → I was at home."},
+   {t:"對話",q:"Nick: Jane can't join our team.",h:"Helen: ___ What's wrong?",a:"Are you kidding?",o:["Then we can play hide-and-seek.","What does it say?","Are you kidding?","Oh, she explained everything."],ex:"Are you kidding? 你在開玩笑嗎？"},
+   {t:"對話",q:"Helen: ___",h:"Larry: I visited some friends. We watched a movie together.",a:"What did you do in Taipei last Saturday?",o:["What did you do in Taipei last Saturday?","Didn't you go to the movies with them?","When did you go to Taipei?","What movie did you and your friends like?"],ex:"回答做了什麼 → What did you do...?"},
+   {q:"I ___ at home yesterday.",a:"was",o:["was","were","am","is"],ex:"I 的過去式是 was。"},
+   {q:"They ___ basketball last Sunday.",a:"played",o:["played","play","plays","playing"],ex:"last Sunday 用過去式。"},
+   {q:"___ you visit the museum yesterday?",a:"Did",o:["Did","Do","Were","Are"],ex:"一般動詞過去式問句用 Did。"},
+   {q:"We ___ in Taipei two years ago.",a:"were",o:["were","was","are","did"],ex:"We 的過去式是 were。"},
+   {q:"Were they at the camp?",h:"No, ___.",a:"they weren't",o:["they weren't","they wasn't","they didn't","they aren't"],ex:"Were they...? → No, they weren't."},
+   {q:"He ___ the tree yesterday.",a:"climbed",o:["climb","climbs","climbed","climbing"],ex:"過去式加 ed：climbed。"},
+   {q:"She ___ study science last night.",a:"didn't",o:["didn't","doesn't","wasn't","don't"],ex:"過去式否定：didn't + 原形動詞。"},
+  ]
+},
+{ id:"b2l6", no:"B2 · L6", title:"They Got Lots of People Together and Cleaned Up Bali's Beaches",
+  vocab:[
+   ["mountain","山","⛰️"],["lake","湖"],["island","島","🏝️"],["beach","海灘","🏖️"],["river","河"],
+   ["hill","小山；丘陵"],["pond","池塘"],["hike","健行","🥾"],["swim / swam","游泳","🏊"],["airport","機場","✈️"],
+   ["bright","明亮的；晴朗的"],["guy","傢伙；人"],["suitcase","手提箱","🧳"],["through","通過；穿過"],["bring / brought","帶來"],
+   ["plastic","塑膠的；塑膠"],["keep / kept","保留；保持"],["throw / threw... away","扔掉……"],["start","開始"],["begin / began","開始"],
+   ["elementary school","小學"],["hate","討厭"],["amazing","令人驚喜的"],["law","法律"],["-free","無……的"],
+   ["kind","種類；友善的"],["program","計畫"],["buy / bought","買","🛒"],["hospital","醫院","🏥"],["package","包裝；包裹","📦"],
+   ["poor","貧窮的；可憐的"],["stop","停止"],["collect","收集"],["half","一半"],["million","百萬"],
+   ["lead / led","領導"],["one of a kind","獨一無二"]
+  ],
+  grammar:[
+   {t:"字彙選擇",q:"Please close your books. Let's ___ the test, and you have 40 minutes for it.",a:"start",o:["start","hate","stop","hike"],ex:"start 開始。"},
+   {t:"字彙選擇",q:"We didn't study in that room. It wasn't ___ enough, and it wasn't good for our eyes.",a:"bright",o:["wise","bright","poor","half"],ex:"bright 明亮的。"},
+   {t:"字彙選擇",q:"We went hiking in the ___ and saw some special trees and animals along the way.",a:"mountains",o:["lake","airport","mountains","program"],ex:"hiking in the mountains 在山裡健行。"},
+   {t:"字彙選擇",q:"Mike ___ the T-shirts away. They are too small for him now.",a:"threw",o:["began","swam","kept","threw"],ex:"throw... away 丟掉，過去式 threw。"},
+   {t:"字彙選擇",q:"Willy: Are you in the USA?",h:"Leo: Yes, I just got here. I'm still at the ___.",a:"airport",o:["hill","million","airport","hospital"],ex:"剛到 → 還在機場 airport。"},
+   {q:"Mrs. Johnson ___ a delicious cake for her daughters last weekend.",a:"made",o:["make","makes","made","is making"],ex:"make 的過去式是 made。"},
+   {q:"Lisa went to the food market with us, but her brother ___.",a:"didn't",o:["doesn't","isn't","can't","didn't"],ex:"went 過去式 → 否定簡答 didn't。"},
+   {q:"Fenny: What ___ Alex have for breakfast?",h:"Dan: He had two eggs and a cup of milk.",a:"did",o:["does","did","can","do"],ex:"回答 had（過去式）→ 問句用 did。"},
+   {q:"The baseball team ___ first place yesterday, and everyone ___ happy.",a:"won; was",o:["won; were","wins; is","won; was","wins; did"],ex:"win → won；everyone 視為單數 → was。"},
+   {q:"My friends and I went to the beach ___ together. It was great.",a:"two days ago",o:["two days ago","next weekend","Fridays and Saturdays","next year"],ex:"went 過去式 → two days ago。"},
+   {q:"Karen: ___ Robert sleep in the afternoon?",h:"Leo: Yes, he did. He ___ for 30 minutes.",a:"Did; slept",o:["Did; slept","Does; sleeps","Is; sleeping","Did; sleep"],ex:"Did...? 回答用過去式 slept。"},
+   {q:"Mia: Who ___ my banana? It was still here 10 minutes ago.",a:"ate",o:["eats","to eat","ate","eating"],ex:"eat 的過去式是 ate。"},
+   {q:"Don't throw ___ your plastic bags here. There's a trash can over there.",a:"away",o:["up","away","with","of"],ex:"throw away 丟掉。"},
+   {q:"Hank: Where did you ___ Mr. Anderson?",h:"Gary: I saw him at the school gate.",a:"see",o:["saw","sees","seeing","see"],ex:"did + 原形動詞。"},
+   {q:"Hank's brother works for the soccer team. ___ him, we got some free tickets.",a:"Thanks to",o:["Start with","Play the role of","Thanks to","Worry about"],ex:"Thanks to... 多虧了……"},
+   {q:"Ken: Didn't Eric ___ to the movies with Dora?",h:"Owen: Of course. He loves all kinds of movies.",a:"go",o:["went","goes","go","going"],ex:"Didn't + 主詞 + 原形動詞？"},
+   {q:"Gary ___ the English book many times last year. He really liked it.",a:"read",o:["reads","read","is reading","to read"],ex:"read 的過去式還是 read（唸 red）。"},
+   {q:"Jim always brings one or two bags ___ him. He never uses plastic bags.",a:"with",o:["with","for","of","around"],ex:"bring... with + 人 隨身帶著。"},
+   {q:"My sister didn't ___ the pancake. She was not hungry then.",a:"buy",o:["buy","bought","buys","buying"],ex:"didn't + 原形動詞。"},
+   {q:"We must ___ this program. It's not good for the island.",a:"stop",o:["to stop","stopping","stopped","stop"],ex:"must + 原形動詞。"},
+   {t:"對話",q:"David: ___",h:"Aaron: In fact, it began with a boy. He wanted to save the world.",a:"How did the program start?",o:["When is the program?","How did the program start?","Who told you the program?","What is the program about?"],ex:"回答「怎麼開始的」→ How did... start?"},
+   {t:"對話",q:"Gary: ___",h:"Zoe: Wow. I visited here 4 or 5 years ago, and it's so different now.",a:"Here we are in Rose Park.",o:["Please don't stop here.","Here we are in Rose Park.","I never visit the same place.","Let's change the law together."],ex:"Here we are. 我們到了。"},
+   {t:"對話",q:"Nick: Everyone liked Lisa. ___",h:"Vicky: She had many good ideas, and she often helped others out.",a:"What did she do on the team?",o:["What did you do?","When did she join you?","Where did she go last year?","What did she do on the team?"],ex:"回答她做了什麼 → What did she do...?"},
+   {q:"I ___ to the beach last Sunday.",a:"went",o:["went","go","goes","going"],ex:"go 的過去式是 went。"},
+   {q:"She ___ a new suitcase yesterday.",a:"bought",o:["bought","buy","buyed","buys"],ex:"buy 的過去式是 bought。"},
+   {q:"We ___ in the lake two days ago.",a:"swam",o:["swam","swim","swimmed","swims"],ex:"swim 的過去式是 swam。"},
+   {q:"He ___ his own bags to the market last week.",a:"brought",o:["brought","bring","bringed","brings"],ex:"bring 的過去式是 brought。"},
+   {q:"The program ___ in 2013.",a:"began",o:["began","begin","begun","begins"],ex:"begin 的過去式是 began。"},
+   {q:"Did you keep the old photos?",h:"Yes, I ___.",a:"did",o:["did","kept","do","was"],ex:"Did you...? → Yes, I did."},
+   {q:"He ___ the trash away last night.",a:"threw",o:["threw","throw","throwed","throws"],ex:"throw 的過去式是 threw。"},
+  ]
+},
+{ id:"b3l1", no:"B3 · L1", title:"I Had a Great Vacation",
+  vocab:[
+   ["vacation","假期","🏖️"],["science","科學","🔬"],["camp","營隊；露營","⛺"],["art","藝術；美術","🎨"],["music","音樂","🎵"],
+   ["festival","節日；節慶","🎉"],["swim / swam","游泳","🏊"],["beach","海灘"],["computer","電腦","💻"],["comic","漫畫"],
+   ["surf the Internet","上網"],["tell / told","講；告訴"],["just","剛剛；只是"],["wedding","婚禮","💒"],["interesting","有趣的"],
+   ["catch one's eye","吸引……的目光"],["machine","機器"],["anyone","任何人"],["sing / sang","唱歌","🎤"],["song","歌曲"],
+   ["else","其他"],["at the end of","在……結束時"],["leftover","剩下的"],["part","部分"],["dish","（一道）菜","🍲"],
+   ["experience","經驗；經歷"],["history","歷史"],["temple","寺廟","⛩️"],["question","問題","❓"],["maybe","也許"],
+   ["through","透過"],["stay","停留"],["balloon","氣球","🎈"],["ride / rode","搭乘；騎"],["afraid","害怕的"],
+   ["cry","哭泣","😢"],["hold / held","握住；拿"],["hand","手","✋"],["feel / felt","感覺"],["safe","安全的"],
+   ["strong","堅固的；強壯的","💪"],["view","景色"],["wonderful","美好的"],["for","達；計"],["take","搭乘"]
+  ],
+  grammar:[
+   {q:"Mrs. Johnson ___ a great cake for her daughters last weekend.",a:"made",o:["makes","make","made","making"],ex:"last weekend 用過去式；make → made。"},
+   {q:"Lisa went to the food festival with us, but her brother ___.",a:"didn't",o:["doesn't","isn't","can't","didn't"],ex:"went 是過去式 → 否定簡答用 didn't。"},
+   {q:"Fenny: What ___ Alex have for breakfast?",h:"Dan: He had two eggs and a cup of milk.",a:"did",o:["does","did","can","do"],ex:"回答用 had（過去式）→ 問句用 did。"},
+   {q:"Gary didn't ___ his bedroom last night. It is still dirty now.",a:"clean",o:["clean","cleaned","cleaning","cleans"],ex:"didn't + 原形動詞。"},
+   {q:"My friends and I went to the museum ___. It was great.",a:"two days ago",o:["two days ago","next weekend","Fridays and Saturdays","next year"],ex:"went 過去式 → 搭配 two days ago。"},
+   {q:"Rick: Did Nancy ___ any salt to the fish pie?",h:"Ben: Maybe she didn't. She was in a hurry.",a:"add",o:["adds","adding","added","add"],ex:"Did + 主詞 + 原形動詞？"},
+   {q:"Mr. Brown always shares different experiences ___ his students.",a:"with",o:["for","with","on","of"],ex:"share... with + 人 和某人分享。"},
+   {q:"My family took a trip to Paris last month, and we stayed there ___ 2 weeks.",a:"for",o:["on","of","for","to"],ex:"for + 一段時間：for 2 weeks。"},
+   {q:"Karen: ___ Robert sleep in the afternoon?",h:"Leo: Yes, he did. He ___ for 30 minutes.",a:"Did; slept",o:["Did; slept","Does; sleeps","Is; sleeping","Did; sleep"],ex:"Did...? 肯定回答用過去式 slept。"},
+   {q:"Rita and Anne are classmates. They are in ___.",a:"the same class",o:["same class","same classes","the same class","a same class"],ex:"same 前面要加 the。"},
+   {q:"Hank: Where did you ___ Mr. Anderson?",h:"Gary: I saw him at the school gate.",a:"see",o:["saw","sees","seeing","see"],ex:"did + 原形動詞。"},
+   {q:"There's a lake in the mountains, but we don't know the name ___ it.",a:"of",o:["on","of","about","for"],ex:"the name of... ……的名字。"},
+   {q:"Mia: Who ___ my banana? It was still here 10 minutes ago.",h:"Ken: I don't know. It was not me.",a:"ate",o:["eats","to eat","ate","eating"],ex:"eat 的過去式是 ate。"},
+   {q:"The movie is hard for James to understand. He had many questions ___ the story.",a:"about",o:["about","in","through","at"],ex:"questions about... 關於……的問題。"},
+   {q:"My brother always studied and ___ to music at the same time.",a:"listened",o:["listens","listening","to listen","listened"],ex:"and 前後時態一致：studied, listened。"},
+   {t:"對話",q:"David: Didn't you watch the basketball game last Friday?",h:"Aaron: ___ I had a group meeting that day.",a:"No, I didn't.",o:["I liked it.","No, I didn't.","Yes, I did.","It wasn't fun."],ex:"有開會所以沒看 → No, I didn't."},
+   {t:"對話",q:"Cathy: ___",h:"Nathan: There were a lot of balloons in different colors. They were beautiful.",a:"What things caught your eye?",o:["That's my favorite part.","Did you see my balloons?","What things caught your eye?","What is your favorite color?"],ex:"catch one's eye 吸引目光。"},
+   {t:"對話",q:"Helen: ___",h:"Larry: I visited some friends and had dinner with them.",a:"What did you do in Taipei last Saturday?",o:["What did you do in Taipei last Saturday?","Didn't you go to the movies with them?","When did you go to Taipei?","Who cooked dinner for you and your friends?"],ex:"回答做了什麼 → What did you do...?"},
+   {q:"We ___ a hot air balloon last summer.",a:"rode",o:["rode","ride","rided","rides"],ex:"ride 的過去式是 rode。"},
+   {q:"I ___ a lot of interesting things at the science camp.",a:"learned",o:["learned","learn","learns","learning"],ex:"過去發生的事用過去式。"},
+   {q:"She ___ a song at her sister's wedding.",a:"sang",o:["sang","sing","sung","sings"],ex:"sing 的過去式是 sang。"},
+   {q:"How ___ your vacation?",h:"It was great.",a:"was",o:["was","were","did","is"],ex:"your vacation 單數、過去 → was。"},
+   {q:"What did you do last weekend?",h:"I ___ my grandparents.",a:"visited",o:["visited","visit","visits","am visiting"],ex:"回答過去的事用過去式。"},
+   {q:"___ you go to the beach yesterday?",a:"Did",o:["Did","Do","Were","Are"],ex:"一般動詞過去式問句用 Did。"},
+   {q:"They ___ at the beach. They were at the temple.",a:"weren't",o:["weren't","didn't","wasn't","aren't"],ex:"They 的過去式否定 → weren't。"},
+   {q:"Tom ___ me a funny story yesterday.",a:"told",o:["told","tell","telled","tells"],ex:"tell 的過去式是 told。"},
+   {q:"Did Amy watch TV last night?",h:"No, ___.",a:"she didn't",o:["she didn't","she doesn't","she wasn't","she don't"],ex:"Did she...? → No, she didn't."},
+   {q:"The big balloon caught ___ eye.",a:"my",o:["my","me","I","mine"],ex:"catch one's eye：用所有格 my。"},
+   {q:"At first, I was afraid ___ the big dog.",a:"of",o:["of","at","for","to"],ex:"be afraid of 害怕……"},
+   {q:"I ___ safe when I held my dad's hand.",a:"felt",o:["felt","feel","feeled","feels"],ex:"feel 的過去式是 felt。"},
+  ]
+},
+{ id:"b3l2", no:"B3 · L2", title:"Why Didn't You See a Doctor?",
+  vocab:[
+   ["sore throat","喉嚨痛"],["headache","頭痛","🤕"],["catch a cold","感冒","🤧"],["hospital","醫院","🏥"],["leg","腿","🦵"],
+   ["fever","發燒","🤒"],["head","頭"],["stomach","胃；肚子"],["call","打電話；呼喊","📞"],["speak / spoke","說話；講"],
+   ["send / sent","寄；送"],["message","訊息","💬"],["What happened?","發生了什麼事？"],["all","全部（的）；都"],["why","為什麼"],
+   ["because","因為"],["country","國家；鄉間"],["serious","嚴重的；認真的"],["health","健康"],["hurt","疼痛；受傷的"],
+   ["bring / brought","帶來"],["ice cream","冰淇淋","🍦"],["so","所以"],["too bad","太糟了"],["treat","治療；對待"],
+   ["as","如同"],["sick","生病的"],["however","然而"],["medicine","藥","💊"],["heavy","厚實的；重的"],
+   ["coat","大衣","🧥"],["healthy","健康的"],["keep / kept","保持"],["body","身體"],["clothes","衣服","👕"],
+   ["try","嘗試"],["put on","穿上"],["as for","至於"]
+  ],
+  grammar:[
+   {q:"My father just bought a new winter coat ___ me last month.",a:"for",o:["to","X（不填）","on","for"],ex:"buy 物 for 人：bought a coat for me。"},
+   {q:"Rita: ___ don't you eat the cake with us?",h:"Ben: I'm not hungry.",a:"Why",o:["When","Where","Why","How"],ex:"回答原因 → 問 Why。"},
+   {q:"The boys were sad yesterday ___ they lost the basketball game.",a:"because",o:["so","because","or","but"],ex:"because 因為（後面接原因）。"},
+   {q:"Lisa: May I ___ your cellphone?",h:"Mike: Sure, it's on my desk.",a:"use",o:["use","using","used","to use"],ex:"May + 原形動詞。"},
+   {q:"Aunt Karen sends ___ us ___ a beautiful card every year.",a:"X; X（都不填）",o:["X; X（都不填）","X; to","to; X","X; for"],ex:"send + 人 + 物：sends us a card，中間不用加字。"},
+   {q:"I missed a lot of interesting activities ___ the bad cold.",a:"because of",o:["because getting","because","because of","so for"],ex:"because of + 名詞；because + 句子。"},
+   {q:"These storybooks are from Nick. He ___ last week.",a:"gave them to me",o:["gave me to them","gave them to me","gave them for me","gave them me"],ex:"give 物 to 人：gave them to me。"},
+   {q:"Mia: Why ___ your brother ___ at 5:30?",h:"Fred: Because he had a soccer practice at 6:20.",a:"did; get up",o:["did; got up","is; getting up","do; get up","did; get up"],ex:"過去 → Why did + 主詞 + 原形動詞？"},
+   {q:"It is raining ___ we can just play card games and chat in the living room.",a:", so",o:["because of",  "because", ", so", ", because"],ex:"下雨（原因），所以（結果）→ , so。"},
+   {q:"Jessica ___ a delicious strawberry pie for her dad.",a:"made",o:["made","gave","sent","showed"],ex:"make 物 for 人；gave / sent / showed 要用 to。"},
+   {q:"The students had a group meeting ___ those math problems.",a:"for",o:["to","for","of","through"],ex:"為了那些數學問題開會 → for。"},
+   {q:"___ Hank never shares the housework, ___ his wife is not happy.",a:"Because; X（不填）",o:["Because; so","So; X（不填）","Because; X（不填）","X（不填）; because"],ex:"because 和 so 不能同時用在一句。"},
+   {q:"Rebecca's eye color is different from ___. She has blue eyes.",a:"mine",o:["me","my","mine color","mine"],ex:"mine = my eye color。"},
+   {q:"Daniel: Did you join the science camp?",h:"Eric: ___ I visited my grandpa in the country.",a:"No, I didn't.",o:["No, I didn't.","Yes, I did.","Yes, I joined.","No, did not."],ex:"去看爺爺所以沒參加 → No, I didn't."},
+   {q:"I like basketball. ___ for my sisters, they love baseball.",a:"As",o:["Along","Also","As","At"],ex:"As for... 至於……"},
+   {t:"對話",q:"Benson: May I speak to Thomas?",h:"Thomas: ___",a:"This is Thomas speaking.",o:["Thomas is speaking to you.","This is Thomas speaking.","I can speak on the phone.","I want to speak to Benson."],ex:"電話用語：This is... speaking. 我就是。"},
+   {t:"對話",q:"Matthew: Your face is white, and your hands are cold. ___",h:"Patrick: I feel sick, and I want to go to the doctor.",a:"What happened?",o:["What are you talking about?","Why didn't you see a doctor?","Did you take any medicine?","What happened?"],ex:"What happened? 發生什麼事？"},
+   {t:"對話",q:"Henry: ___",h:"Wendy: Because I wanted to read it with Karen.",a:"Why did you bring this storybook to school?",o:["Why did you bring this storybook to school?","When did you give the book to Karen?","Didn't Karen share the book with you?","Who did you want to share the story with?"],ex:"回答 Because → 問 Why。"},
+   {q:"I caught a cold, ___ I stayed at home.",a:"so",o:["so","because","because of","but"],ex:"感冒（原因），所以待在家（結果）→ so。"},
+   {q:"He didn't go to school ___ he had a fever.",a:"because",o:["because","so","because of","or"],ex:"because + 句子（原因）。"},
+   {q:"She stayed home ___ her headache.",a:"because of",o:["because of","because","so","why"],ex:"because of + 名詞。"},
+   {q:"___ didn't you see a doctor?",h:"Because I was busy.",a:"Why",o:["Why","What","Where","Who"],ex:"回答 Because → Why。"},
+   {q:"My mom sent ___ a message.",a:"me",o:["me","I","my","mine"],ex:"send + 人（受格）+ 物。"},
+   {q:"Can you bring ___ to me?",a:"the book",o:["the book","me the book","to the book","for the book"],ex:"bring 物 to 人。"},
+   {q:"Please give the medicine ___ your grandma.",a:"to",o:["to","for","with","at"],ex:"give 物 to 人。"},
+   {q:"Dad made a sandwich ___ me.",a:"for",o:["for","to","with","of"],ex:"make 物 for 人。"},
+   {q:"Put ___ your coat. It's cold outside.",a:"on",o:["on","in","at","up"],ex:"put on 穿上。"},
+   {q:"You should take this medicine ___ warm water.",a:"with",o:["with","for","by","of"],ex:"take medicine with water 配水吃藥。"},
+   {q:"Why did Ben go to the hospital?",a:"Because he hurt his leg.",o:["Because he hurt his leg.","So he hurt his leg.","Because of he hurt his leg.","He hurts his leg because."],ex:"Why 問句用 Because + 句子回答。"},
+   {q:"Too bad! I hope you get ___ soon.",a:"better",o:["better","good","well","best"],ex:"get better 好轉。"},
+  ]
+},
+{ id:"b3l3", no:"B3 · L3", title:"Tina and Billy Were Looking for Water",
+  vocab:[
+   ["map","地圖","🗺️"],["beginning","開頭"],["middle","中間（的）"],["take place","發生"],["quarter","十五分鐘；四分之一"],
+   ["crow","烏鴉","🐦‍⬛"],["chicken","雞","🐔"],["road","道路","🛣️"],["bright","晴朗的；明亮的"],["sky","天空"],
+   ["clear","晴朗的；清楚的"],["cross","跨越"],["forest","森林","🌲"],["dry","乾燥的；（使）變乾"],["find / found","找到"],
+   ["something","某物；某事"],["jar","罐子","🏺"],["beak","鳥嘴"],["reach","達到；伸手拿"],["rock","岩石","🪨"],
+   ["fly / flew","飛行","🕊️"],["pick up","撿起"],["back","回原處；後面（的）"],["drop","丟下；落下"],["Good job!","做得好！"],
+   ["think / thought","想"],["be proud of","以……為榮"],["back and forth","來回地"],["finally","最後"],["top","頂端；最好的"],
+   ["half","一半（的）"],["past","經過；過去（的）"],["finish","完成；結束"],["anything","任何事物"],["ask","問；要求"],
+   ["before","在……之前"],["when","當……時"],["after","在……之後"],["close","接近地"]
+  ],
+  grammar:[
+   {q:"When Melissa ___ time, she takes her sons to the library.",a:"has",o:["is having","have","had","has"],ex:"主要句用現在式 takes → when 子句也用現在式 has。"},
+   {q:"Jeremy ___ dinner with his wife at 8 last night.",a:"was having",o:["has","was having","is having","having"],ex:"過去某時間點正在做 → was + V-ing。"},
+   {q:"Rachel: When can we get into the museum? It's 8:30 now.",h:"Cathy: At ___ nine. We need to wait for 15 minutes.",a:"a quarter to",o:["half past","a quarter past","a quarter to","half to"],ex:"8:30 再等 15 分 = 8:45 = a quarter to nine。"},
+   {q:"Mike: What was your sister doing then?",h:"Gina: She ___ a bath.",a:"was taking",o:["was taking","took","is taking","to take"],ex:"問 was doing → 答 was + V-ing。"},
+   {q:"Two years ago, Kevin never went to the doctor ___ he was sick.",a:"when",o:["because","so","however","when"],ex:"when 當……時。"},
+   {q:"Johnny was talking on the phone ___.",a:"when I got home",o:["today","at 7 p.m. next Monday","when I got home","on weekends"],ex:"過去進行式搭配過去某個時間點 → when I got home。"},
+   {q:"Nancy cleaned her bedroom ___ she went to the restaurant.",a:"before",o:["so","when","before","because"],ex:"before 在……之前。"},
+   {q:"Ben: What ___ you reading at 10 this morning?",h:"Rita: Wonderland. It's my favorite book.",a:"were",o:["were","are","do","did"],ex:"過去某時間正在做 → What were you + V-ing？"},
+   {q:"You sent those messages ___ I went to bed. So, I didn't see them.",a:"after",o:["so","after","because","before"],ex:"我睡了以後才傳 → 所以沒看到 → after。"},
+   {q:"There are 12 pieces of pie. Please put them on the plates ___.",a:"one by one",o:["every one","by one","after one","one by one"],ex:"one by one 一個接一個。"},
+   {q:"Hugo enjoys swimming. He can think ___ many good ideas in the water.",a:"of",o:["from","at","of","along"],ex:"think of 想到。"},
+   {q:"The practice starts at 7:30, so the players need to get up at ___.",a:"twenty to seven",o:["a quarter past eight","twenty to seven","twenty to eight","half past seven"],ex:"要在 7:30 前起床：twenty to seven = 6:40。"},
+   {q:"Leo: Who ___ talking to Mr. Lee at that time?",h:"Mark: I don't know. I wasn't there.",a:"was",o:["was","are","is","to be"],ex:"at that time 過去 → was + V-ing。"},
+   {q:"Before Jessie ___ on a picnic, she ___ lots of food for everyone.",a:"went; prepared",o:["goes; prepared","went; prepares","was going; was preparing","went; prepared"],ex:"兩個都是過去的動作 → 過去式。"},
+   {q:"Ray: ___ you ___ to Larry today?",h:"Karen: No, I didn't. Why do you ask?",a:"Did; talk",o:["Do; talk","Were; talking","Did; talk","Can; talk"],ex:"回答 didn't → 問 Did + 原形動詞。"},
+   {t:"對話",q:"Mika: ___",h:"Hank: I was walking Lucky in the park then.",a:"What were you doing at 5 p.m.?",o:["What did you do last night?","What were you doing at 5 p.m.?","Did you find Lucky in the park?","When did you go to the park?"],ex:"答 was walking → 問 What were you doing？"},
+   {t:"對話",q:"Michael: I finally won the tennis game today.",h:"Chris: ___ I'm so proud of you.",a:"Good job!",o:["Let's take a break.","When was that?","Good job!","Why do you win?"],ex:"Good job! 做得好！"},
+   {t:"對話",q:"Frank: ___",h:"Emma: No, it's not mine. Mine is here.",a:"Hey, did you just drop your key?",o:["Wait! What did you just pick up?","Are you looking for your key?","Did you see my key? I can't find it.","Hey, did you just drop your key?"],ex:"回答「不是我的」→ 問是不是你掉的。"},
+   {q:"I ___ TV when my mom came home.",a:"was watching",o:["was watching","am watching","watch","were watching"],ex:"過去某時正在做 → was + V-ing。"},
+   {q:"They ___ basketball at 4 p.m. yesterday.",a:"were playing",o:["were playing","was playing","are playing","play"],ex:"They → were + V-ing。"},
+   {q:"What were you doing at nine last night?",h:"I ___ my homework.",a:"was doing",o:["was doing","am doing","did doing","were doing"],ex:"I → was + V-ing。"},
+   {q:"Were you sleeping then?",h:"No, ___.",a:"I wasn't",o:["I wasn't","I weren't","I didn't","I'm not"],ex:"Were you...? → No, I wasn't."},
+   {q:"It's 7:15. It's ___ seven.",a:"a quarter past",o:["a quarter past","a quarter to","half past","past quarter"],ex:"7:15 = a quarter past seven。"},
+   {q:"It's 6:30. It's ___ six.",a:"half past",o:["half past","half to","a quarter past","thirty to"],ex:"6:30 = half past six。"},
+   {q:"___ I finished my homework, I watched TV.",a:"After",o:["After","So","Because","But"],ex:"after 在……之後。"},
+   {q:"Wash your hands ___ you eat dinner. Don't eat with dirty hands.",a:"before",o:["before","after","so","because"],ex:"吃飯之前洗手 → before。"},
+   {q:"The crow picked ___ the rocks one by one.",a:"up",o:["up","on","at","in"],ex:"pick up 撿起。"},
+   {q:"My parents are proud ___ me.",a:"of",o:["of","at","for","with"],ex:"be proud of 以……為榮。"},
+   {q:"The dog was running back and ___ in the yard.",a:"forth",o:["forth","back","go","again"],ex:"back and forth 來回地。"},
+   {q:"Was Tom crossing the road?",h:"Yes, ___.",a:"he was",o:["he was","he did","he is","he were"],ex:"Was he...? → Yes, he was."},
+  ]
+},
+{ id:"b3l4", no:"B3 · L4", title:"I Want to Be a YouTuber",
+  vocab:[
+   ["housewife","家庭主婦"],["police officer","警察","👮"],["secretary","祕書"],["reporter","記者"],["mailman","郵差","📮"],
+   ["actress","女演員"],["actor","男演員"],["waitress","女服務生"],["waiter","男服務生"],["singer","歌手","🎤"],
+   ["act","扮演；表現"],["report","報告；報導"],["writer","作家；作者","✍️"],["future","未來"],["camera","攝影機；相機","📷"],
+   ["important","重要的"],["popular","受歡迎的"],["funny","好笑的"],["plan","計畫"],["without","沒有"],
+   ["dream","夢（想）；夢見"],["right","恰當的"],["gift","天分"],["kid","小孩"],["teenager","青少年"],
+   ["exciting","刺激的；令人興奮的"],["fight / fought","對抗；打架"],["one another","彼此"],["money","錢","💰"],["famous","有名的","⭐"],
+   ["on the other hand","另一方面"],["lead to","導致"],["train","訓練；火車"],["sadly","令人遺憾地"],["stop","停止；站牌"],
+   ["team up with","跟……組隊"],["have to","必須"],["stay up","熬夜"]
+  ],
+  grammar:[
+   {q:"Sandy enjoyed ___ in the park when she was a kid.",a:"playing",o:["played","playing","to play","be playing"],ex:"enjoy + V-ing。"},
+   {q:"Gary likes ___ stories to his boys before they go to bed.",a:"to tell",o:["tells","to be telling","told","to tell"],ex:"like + to V（或 V-ing）。"},
+   {q:"Ms. Smith: ___ your cellphone in class is not right. Please stop doing that.",a:"Checking",o:["Check","Checks","Checking","To checking"],ex:"動名詞 V-ing 當主詞。"},
+   {q:"Brian kept ___ the house until his parents got home.",a:"cleaning",o:["cleaning","to clean","cleaned","cleans"],ex:"keep + V-ing 持續做。"},
+   {q:"___ is good for the kids ___ to take care of animals.",a:"It; to learn",o:["That; learned","It; learned","It; to learn","There; to learn"],ex:"It is + 形容詞 + to V（It 是虛主詞）。"},
+   {q:"Karen wanted ___ at the library, but it wasn't open that day.",a:"to study",o:["studying","studied","to study","be studying"],ex:"want + to V。"},
+   {q:"Singing a song and writing one ___ different. Not every singer can write songs.",a:"are",o:["is","to be","be","are"],ex:"兩件事用 and 連接 → 複數 are。"},
+   {q:"Alex and his friends ___ to play the guitar together after school.",a:"plan",o:["practice","plan","keep","enjoy"],ex:"plan + to V；practice / keep / enjoy 後面接 V-ing。"},
+   {q:"Leo needs ___ the medicine three times a day.",a:"to take",o:["to take","taking","to taking","takes"],ex:"need + to V。"},
+   {q:"___ is not easy for the boys. They just can't stop making noises.",a:"Being quiet",o:["Be quiet","Being quiet","To quiet","For quiet"],ex:"動名詞當主詞：Being quiet。"},
+   {q:"Helen is a good actress, and she is also good at ___.",a:"dancing",o:["dance","danced","to dance","dancing"],ex:"介系詞 at 後面接 V-ing。"},
+   {q:"You can't only listen to Cathy. There are two sides ___ every story.",a:"to",o:["for","on","to","over"],ex:"two sides to every story 每件事都有兩面。"},
+   {q:"It was difficult ___ Thomas to finish that much work in a day.",a:"for",o:["to","as for","about","for"],ex:"It is + 形容詞 + for 人 + to V。"},
+   {q:"Sam was too hungry, so he started eating without ___ his hands first.",a:"washing",o:["to wash","washing","washed","washes"],ex:"介系詞 without 後面接 V-ing。"},
+   {q:"Nina likes playing with dogs. She wants to keep one ___ the future.",a:"in",o:["in","for","from","past"],ex:"in the future 在未來。"},
+   {t:"對話",q:"Nick: I want to be a cook and open a restaurant.",h:"Joyce: ___ You don't even help your mom in the kitchen.",a:"Are you serious?",o:["For example?","Where is the restaurant?","Are you serious?","You can be a great cook!"],ex:"Are you serious? 你是認真的嗎？"},
+   {t:"對話",q:"Kate: Don't you want to go to the movies with us this weekend?",h:"Dan: Well, I want to, but ___, I have to take care of my little brother.",a:"on the other hand",o:["on the other hand","one another","without the first step","that's right"],ex:"on the other hand 另一方面。"},
+   {t:"對話",q:"Mandy: Why do you often go jogging or play sports?",h:"Dora: Because ___.",a:"it's important to exercise three times a week",o:["it's a lot of fun to play and chat with you","it's important to exercise three times a week","going jogging and playing sports are difficult","they are not the right things for you"],ex:"說明運動的原因。"},
+   {q:"I want ___ a YouTuber in the future.",a:"to be",o:["to be","be","being","am"],ex:"want + to V。"},
+   {q:"Keep ___. You are doing great!",a:"practicing",o:["practicing","to practice","practice","practiced"],ex:"keep + V-ing。"},
+   {q:"___ English every day is important.",a:"Speaking",o:["Speaking","Speak","Spoke","Speaks"],ex:"動名詞當主詞。"},
+   {q:"It's fun ___ with friends.",a:"to play",o:["to play","play","played","plays"],ex:"It is + 形容詞 + to V。"},
+   {q:"He decided ___ hard for the test.",a:"to study",o:["to study","studying","study","studied"],ex:"decide + to V。"},
+   {q:"Do you enjoy ___ comic books?",a:"reading",o:["reading","read","to read","reads"],ex:"enjoy + V-ing。"},
+   {q:"I have to ___ up late tonight.",a:"stay",o:["stay","stays","staying","stayed"],ex:"have to + 原形動詞。"},
+   {q:"She is good at ___.",a:"singing",o:["singing","sing","to sing","sang"],ex:"at 後面接 V-ing。"},
+   {q:"Thank you for ___ me.",a:"helping",o:["helping","help","to help","helped"],ex:"for 後面接 V-ing。"},
+   {q:"They teamed up ___ some friends to make videos.",a:"with",o:["with","for","at","of"],ex:"team up with 跟……組隊。"},
+   {q:"My dream is ___ a famous singer.",a:"to become",o:["to become","become","became","becomes"],ex:"My dream is + to V。"},
+   {q:"You can't watch TV without ___ your homework.",a:"finishing",o:["finishing","finish","to finish","finished"],ex:"without + V-ing。"},
+  ]
+},
+{ id:"b3l5", no:"B3 · L5", title:"My Family Will Take a Trip to Japan",
+  vocab:[
+   ["bookstore","書店","📚"],["supermarket","超級市場","🛒"],["post office","郵局","🏤"],["bank","銀行","🏦"],["church","教堂","⛪"],
+   ["bakery","麵包店","🥐"],["elementary school","小學"],["hotel","飯店","🏨"],["department store","百貨公司"],["flower shop","花店","💐"],
+   ["shop","商店；購買"],["guess","猜"],["somewhere","在某處"],["tomorrow","明天"],["will / would","將"],
+   ["during","在……期間"],["live","居住"],["hike","健行","🥾"],["public","大眾；公眾的"],["should","應該"],
+   ["spend / spent","花費（時間；金錢）"],["ski","滑雪","⛷️"],["lucky","幸運的","🍀"],["how long","多久"],["take","花費（時間）"],
+   ["lucky money","壓歲錢","🧧"],["dozen","一打"],["decide","決定"],["guy","傢伙；人"],["leave / left","離開；留下"],
+   ["firework","煙火","🎆"],["nature","大自然"],["the sights","景點"],["remember","記得"],["leave for","前往"]
+  ],
+  grammar:[
+   {q:"Karen will ___ me math this Friday afternoon.",a:"teach",o:["teaches","teaching","taught","teach"],ex:"will + 原形動詞。"},
+   {q:"The kids are going to visit their teacher ___.",a:"next week",o:["yesterday","last night","next week","in 2017"],ex:"be going to 表示未來 → next week。"},
+   {q:"I ___ going to join the music club, but my sisters ___.",a:"am not; are",o:["am; are","am not; are","won't; will","am not; are going"],ex:"but 前後相反：我不參加，但姐妹們會 → am not; are。"},
+   {q:"Fay: Are you ___ Ms. Lee later today?",h:"Sam: Yes, maybe at 6 in the evening.",a:"going to call",o:["called","going to call","call","will call"],ex:"Are you going to + 原形動詞？"},
+   {q:"Please remember ___ the book to school. We need it tomorrow.",a:"to bring",o:["to bring","bringing","will bring","brought"],ex:"remember to V 記得去做（還沒做）。"},
+   {q:"John will go to the basketball game, but his brother ___.",a:"won't",o:["doesn't","can't","didn't","won't"],ex:"will 的否定簡答 → won't。"},
+   {q:"Daniel is going to leave ___ Canada next Saturday with his girlfriend.",a:"for",o:["at","in","for","to"],ex:"leave for + 地點 前往……"},
+   {q:"Diana: ___ you ___ to the meeting tomorrow?",h:"Anne: Of course. Everyone has to go.",a:"Will; go",o:["Will; go","Are; go","Will; going","Are; will go"],ex:"Will + 主詞 + 原形動詞？"},
+   {q:"Alex: ___ did it take you to walk to the bank?",h:"Mandy: About 15 minutes. I live near it.",a:"How long",o:["How old","How long","How often","How about"],ex:"問花多久時間 → How long。"},
+   {q:"There ___ going ___ a new library in the school. We can't wait to go there.",a:"is; to be",o:["will; to be","is; be","will; X","is; to be"],ex:"There is going to be... 將會有……"},
+   {q:"The students should ___ each other with the history homework.",a:"help",o:["helping","to help","help","helped"],ex:"should + 原形動詞。"},
+   {q:"Kate loves music. She spends two hours ___ the guitar every day.",a:"playing",o:["to play","playing","plays","be playing"],ex:"spend + 時間 + V-ing。"},
+   {q:"My father likes to ___ when he is free. It's good for his health.",a:"go swimming",o:["going swim","going swimming","go swim","go swimming"],ex:"to + 原形動詞；去游泳 = go swimming。"},
+   {q:"Ken caught a terrible cold last month. It took him almost 3 weeks ___ healthy again.",a:"to be",o:["to be","for being","be","being"],ex:"It takes + 人 + 時間 + to V。"},
+   {q:"Mother's Day is coming, and Shelly decided ___ a cake for her mom.",a:"to make",o:["making","makes","to make","will make"],ex:"decide + to V。"},
+   {t:"對話",q:"Andy: Who are you going to give this cute card to? ___ Sally?",h:"Peter: No, Sally's birthday is next month. This card is for my daughter.",a:"Let me guess.",o:["I'm proud of you.","Of course.","Do you remember?","Let me guess."],ex:"Let me guess. 讓我猜猜看。"},
+   {t:"對話",q:"Rachel: How long did it take you to finish reading the book?",h:"Mike: ___",a:"Only 2 days. It is a really interesting book.",o:["There are many beautiful pictures in the book.","Only 2 days. It is a really interesting book.","I'm busy, so I only read it every three days.","I finally finished the book last weekend."],ex:"How long 問多久 → 回答時間長度。"},
+   {t:"對話",q:"James: ___",h:"Lisa: I'm going to the art museum with my sisters.",a:"What are you going to do this weekend?",o:["What are you going to do this weekend?","Do you often visit the art museum?","How long does it take you to walk there?","Are you going to visit your sisters?"],ex:"回答未來的計畫 → What are you going to do...?"},
+   {q:"We ___ visit Japan next summer.",a:"will",o:["will","are","did","were"],ex:"will + 原形動詞。"},
+   {q:"Is she going to the bookstore tomorrow?",h:"Yes, ___.",a:"she is",o:["she is","she will","she does","she going"],ex:"Is she going...? → Yes, she is."},
+   {q:"Will you be home tonight?",h:"No, ___.",a:"I won't",o:["I won't","I don't","I'm not","I willn't"],ex:"Will you...? → No, I won't."},
+   {q:"It ___ rain tomorrow. Take your umbrella.",a:"will",o:["will","is","are","does"],ex:"表示未來 → will + 原形動詞。"},
+   {q:"They ___ going to have a party next Friday.",a:"are",o:["are","is","will","do"],ex:"They are going to + 原形動詞。"},
+   {q:"It takes me 20 minutes ___ to school.",a:"to walk",o:["to walk","walk","walking","walked"],ex:"It takes + 人 + 時間 + to V。"},
+   {q:"I spent two hours ___ my homework.",a:"doing",o:["doing","to do","do","did"],ex:"spend + 時間 + V-ing。"},
+   {q:"How long does it take ___ to the park?",a:"to get",o:["to get","get","getting","got"],ex:"How long does it take to V？"},
+   {q:"Remember ___ the door when you leave.",a:"to lock",o:["to lock","locking","lock","locked"],ex:"remember to V 記得去做。"},
+   {q:"What are you going to do ___ the vacation?",a:"during",o:["during","across","through","along"],ex:"during 在……期間。"},
+   {q:"I will ___ for Tokyo tomorrow.",a:"leave",o:["leave","leaves","left","leaving"],ex:"will + 原形動詞；leave for 前往。"},
+   {q:"She decided ___ a dozen eggs.",a:"to buy",o:["to buy","buying","buy","bought"],ex:"decide + to V。"},
+  ]
+},
+{ id:"b3l6", no:"B3 · L6", title:"How Do We Get There from the Station?",
+  vocab:[
+   ["plane","飛機","✈️"],["bike","腳踏車","🚲"],["taxi","計程車","🚕"],["scooter","輕型機車","🛵"],["motorcycle","重型機車","🏍️"],
+   ["truck","卡車","🚚"],["ship","船；艦","🚢"],["boat","小船","⛵"],["drive / drove","駕駛（車）"],["row","划（船）","🚣"],
+   ["north","北方"],["west","西方"],["east","東方"],["south","南方"],["Excuse me.","不好意思。"],
+   ["sir","先生"],["wrong","錯誤的"],["forget / forgot","忘記"],["outside","在……外面"],["on foot","走路；步行","🚶"],
+   ["turn right","右轉"],["corner","轉角"],["straight","直地；直的"],["block","街區"],["left","左邊（的）"],
+   ["across from","在……對面"],["smartphone","智慧型手機","📱"],["cost / cost","花費（金錢）"],["thousand","千"],["shake hands","握手","🤝"],
+   ["pocket","口袋"],["monster","怪獸","👾"],["clerk","店員"],["convenient","方便的"],["mistake","錯誤"],
+   ["cheap","便宜的"],["expensive","昂貴的"],["pay / paid","付錢"],["beef","牛肉","🥩"],["parking space","停車位","🅿️"]
+  ],
+  grammar:[
+   {q:"The bakery is ___ the corner ___ First Street and Wilson Road.",a:"on; of",o:["at; on","in; at","on; of","at; in"],ex:"on the corner of... 在……的轉角。"},
+   {q:"Lisa: ___ do I get to the post office?",h:"Sam: Walk straight for 2 blocks, and you'll see it on your right.",a:"How",o:["When","Why","What","How"],ex:"問怎麼去 → How do I get to...?"},
+   {q:"Henry and his classmates usually go to school ___.",a:"by bus",o:["by bus","by foot","taking train","for bike"],ex:"by + 交通工具；走路是 on foot。"},
+   {q:"It ___ John three hundred dollars to buy the gift for his brother.",a:"cost",o:["cost","took","spent","paid"],ex:"It costs + 人 + 錢 + to V。"},
+   {q:"I forgot to turn right ___ the first corner, so I didn't find the restaurant.",a:"at",o:["in","from","at","of"],ex:"turn right at the corner 在轉角右轉。"},
+   {q:"Larry spent 2 hours ___ on the phone last night.",a:"talking",o:["to talk","talked","was talking","talking"],ex:"spend + 時間 + V-ing。"},
+   {q:"Kevin: I'm at the library now. How do I get to the flower shop?",h:"Nina: ___ the street. The shop is ___ the library.",a:"Cross; across from",o:["Cross from; across","Cross; across from","Across; cross from","Across; cross"],ex:"cross 是動詞（穿越）；across from 在……對面。"},
+   {q:"Emma showed ___ those photos yesterday, and we all loved them.",a:"us",o:["to us","for us","us to","us"],ex:"show + 人 + 物：showed us those photos。"},
+   {q:"The church is ___ the library ___ the supermarket.",a:"between; and",o:["between; and","next; to","across; to","in front; and"],ex:"between A and B 在 A 和 B 之間。"},
+   {q:"My sister asked me ___ the report for her, but I didn't help her.",a:"to write",o:["writing","write","to write","wrote"],ex:"ask + 人 + to V。"},
+   {q:"Ms. Miller usually ___ the metro to school.",a:"takes",o:["by","takes","on","drives"],ex:"take + 交通工具 搭乘。"},
+   {q:"Frank spent only 20 dollars ___ that bag of apples.",a:"on",o:["to buy","for","in","on"],ex:"spend + 錢 + on + 物。"},
+   {q:"Walk ___ the street ___ 3 blocks, and you'll see my store.",a:"along; for",o:["on; at","along; for","across; at","from; for"],ex:"walk along 沿著走；for 3 blocks 走三個街區。"},
+   {q:"For Hank, ___ is always fun to swim at the beach in summer.",a:"it",o:["which","there","it","he"],ex:"It is + 形容詞 + to V（虛主詞 it）。"},
+   {q:"I had ___ to school before 7 this morning, so I didn't have breakfast.",a:"to go",o:["to go","going","went","go"],ex:"have to + 原形動詞（過去式 had to）。"},
+   {t:"對話",q:"Mike: ___",h:"Jay: By bicycle. It was great to ride a bike on a sunny day.",a:"How did you go to the library?",o:["How was the weather yesterday?","How long did it take you to go to the library?","How did you go to the library?","How about going bike riding together?"],ex:"回答 By bicycle → 問 How did you go...?"},
+   {t:"對話",q:"Rachel: ___",h:"Sandy: I paid almost three thousand dollars for it.",a:"How much did you spend on the coat?",o:["How many coats do you have?","How much did you spend on the coat?","How long did it take you to find the coat?","How can we get to the department store?"],ex:"回答花多少錢 → How much...?"},
+   {t:"對話",q:"David: I forgot the name of the movie. Do you remember?",h:"Alex: ___ She really likes the actor in it.",a:"Why don't you ask Nancy?",o:["Why don't you ask Nancy?","Sorry, I really don't know.","What should I do now?","Did you go to the movies?"],ex:"後面說「她很喜歡那演員」→ 建議去問 Nancy。"},
+   {q:"The book ___ me 200 dollars.",a:"cost",o:["cost","spent","took","paid"],ex:"物 + cost + 人 + 錢。"},
+   {q:"I ___ 500 dollars for the shoes.",a:"paid",o:["paid","cost","took","spend"],ex:"人 + pay + 錢 + for + 物。"},
+   {q:"It ___ me ten minutes to walk to the station.",a:"takes",o:["takes","costs","spends","pays"],ex:"花時間：It takes + 人 + 時間 + to V。"},
+   {q:"Turn ___ at the second corner.",a:"right",o:["right","rightly","to right","on right"],ex:"turn right 右轉。"},
+   {q:"The bank is ___ the post office and the school.",a:"between",o:["between","across","next","along"],ex:"between A and B。"},
+   {q:"The store is next ___ the bank.",a:"to",o:["to","from","of","with"],ex:"next to 在……旁邊。"},
+   {q:"I go to school ___ foot.",a:"on",o:["on","by","with","in"],ex:"on foot 走路。"},
+   {q:"He goes to work ___ bike.",a:"by",o:["by","on","with","in"],ex:"by + 交通工具（不加 a / the）。"},
+   {q:"Excuse me. How do I ___ to the hotel?",a:"get",o:["get","go","arrive","take"],ex:"How do I get to...? 怎麼去……？"},
+   {q:"She spent all her money ___ clothes.",a:"on",o:["on","at","to","with"],ex:"spend + 錢 + on + 物。"},
+   {q:"The park is across ___ my house.",a:"from",o:["from","to","of","at"],ex:"across from 在……對面。"},
+   {q:"Walk ___ for two blocks, and the bank is on your left.",a:"straight",o:["straight","straightly","across","turn"],ex:"walk straight 直走。"},
+  ]
+}
+];
+
+/* 文法題中文翻譯：依各課題目順序排列 */
+const TR={
+b1l1:[
+"你是醫生嗎？不，我不是。我是護理師。",
+"我是一個國中生。",
+"李太太是一位好的英文老師。",
+"你哥哥是學生嗎？不，他不是。他是廚師。",
+"妳是 Bob 的太太嗎？是的，我是。",
+"那位高個子的女士是誰？她是我阿姨。",
+"那個男孩是誰？他是 Vincent。",
+"那本書好看嗎？不，它不好看。",
+"Jessica 是一位英文老師。",
+"Chris 是一位年輕的農夫。",
+"Ben 是我哥哥。他不是我表哥。",
+"林先生是廚師，他的太太是護理師。",
+"Paul 和我是兄妹。王先生是我們的爸爸。",
+"那兩位女士是好媽媽。",
+"A：很高興認識你。B：我也很高興認識你。",
+"「怎麼了？」= What's the problem?"
+],
+b1l2:[
+"那些是大象。",
+"這些是什麼？牠們是老鼠。",
+"這些是我的照片。",
+"那是一條蛇嗎？是的，牠是。",
+"那些是斑馬嗎？不，牠們不是。",
+"我有兩個箱子。",
+"農場上有三隻綿羊。",
+"這是一隻大象。",
+"我的生肖和你的不一樣。",
+"我屬猴。那你呢？"
+],
+b1l3:[
+"我們來從 RoomGPT 得到一些點子吧。",
+"我們來看看這張照片吧。",
+"請安靜。",
+"請進。",
+"不要開門。很冷。",
+"請不要遲到。",
+"我對這個計畫沒問題。",
+"A：我們去廚房吧。B：好主意！",
+"「我懂了。」= I see."
+],
+b1l4:[
+"我可以一再地聽他們的歌。",
+"你會唱歌嗎？是的，我會。",
+"他很會跳舞。",
+"她會游泳嗎？不，她不會。",
+"我喜歡周杰倫。我一直聽他的歌。",
+"那些是我的朋友。我常和他們玩。",
+"小心！你現在不能過馬路。",
+"請幫我們拍張照。",
+"Watch out! = 小心！"
+],
+b1l5:[
+"你在做什麼？我在做三明治。",
+"他現在正在打籃球。",
+"他們正在群組裡聊天。",
+"她在睡覺嗎？不，她沒有。",
+"Tom 在做什麼？",
+"男孩們正在泳池裡游泳。",
+"你看！太陽正在升起。",
+"我在去學校的路上。",
+"Hurry up! = 快一點！"
+],
+b1l6:[
+"大門附近有一間圖書館。",
+"門外有一些架子。",
+"體育館裡有學生嗎？是的，有。",
+"你們學校有花園嗎？不，沒有。",
+"有三明治嗎？",
+"書桌上沒有任何書。",
+"遊樂場裡有很多人。",
+"我還是很餓。",
+"別擔心這件事。"
+],
+b2l1:[
+"我們每天早上在公園練習網球。我們想贏得比賽。",
+"Tom 不能去看籃球比賽。他沒有票。",
+"這支手錶很酷，而且只要新臺幣 1,000 元。",
+"我今晚不能和你去看電影。我有很多功課要做。",
+"這是個美好的早晨，林家人正在飯廳吃早餐。",
+"我喜歡狗和兔子，但我哥哥們不喜歡任何動物。",
+"Rachael 是一位國中老師。她班上有 28 個學生。",
+"那個男孩很高。他一定是個很棒的籃球員。",
+"Michael：你和你兄弟早上做運動嗎？Rick：是的，我們有，但我們只在週末運動。",
+"Gina：你兒子喜歡什麼？Dan：他喜歡蘋果和草莓。",
+"我有很多考試，沒有時間玩電玩。",
+"Fred：你弟弟在家練習跳舞嗎？Mina：不，他在學校練。",
+"Vivian：Mina 每天晚上讀什麼？David：她讀關於動物的書。",
+"Nancy：你的朋友們用功讀書嗎？Rita：是的。他們是好學生。",
+"David：Ginny 每天早上吃早餐嗎？Kim：是的，她有。她喜歡在家吃早餐。",
+"Gina：你週末做什麼？Eva：我和媽媽一起煮飯，和爸爸一起看書。",
+"Sharon 不會每天把學生的照片上傳到 IG。",
+"Peter：噢，不！我身上沒帶錢。Tim：沒關係。晚餐我請。",
+"不要擔心你的兒子們。他們是大男孩了，而且很聰明。",
+"我每週日去圖書館，但我哥哥不去。",
+"Henry：我真的很想去那座新公園。Kate：我也是！我們下週末一起去吧。",
+"Kevin：你的手錶多少錢？Gina：我不知道。這是我爸爸送的禮物。",
+"David：我這週五有英文考試，但我英文不好。Shelly：別擔心。我可以和你一起讀。",
+"我妹妹每天早上刷牙。",
+"Tom 不喜歡足球。他喜歡棒球。",
+"Amy 放學後打羽毛球嗎？",
+"你爸爸晚上看電視嗎？不，他不看。",
+"我弟弟每天打電玩。",
+"Kevin 晚餐後寫功課。",
+"Alan 每天做什麼？他打籃球。"
+],
+b2l2:[
+"Benson 現在很胖。他必須改變飲食習慣。",
+"Leo 數學考試的成績很糟。他對此很難過。",
+"髒水正在害死湖裡的魚。我們能做什麼？",
+"廁所在哪裡？我想用馬桶。",
+"我有晚上閱讀的習慣。我每天晚上和我先生一起看書。",
+"Dan 上學從不遲到。他是個好學生。",
+"Kim：你多久遛一次 Lucky？Mike：我每天早上遛牠。",
+"Sally 有很多工作。她很少有時間運動。",
+"John 喜歡運動。舉例來說，他每天踢足球、打棒球或打籃球。",
+"我們把這些椅子從 708 班搬到 702 班吧。",
+"那邊那個女孩可能是 Lily 的妹妹。她們都又漂亮又高。",
+"我有時在客廳看書。我並不總是在臥室看書。",
+"Nick：你多常去圖書館？Leo：我一個月大約去五次。",
+"請不要在工作時用手機。那樣不好。",
+"桌上有一顆蘋果。是誰的？",
+"Rita 正在泡澡。她現在不能和你說話。",
+"Henderson 先生和一些來自美國的醫生共事。他每兩個月和他們開一次大會。",
+"Michael：Dan 總是贏籃球比賽嗎？Nathan：是的，他總是贏。他是很棒的球員。",
+"Rachel 通常在空閒時和朋友出去。",
+"Rita：Gina 多久拖一次地？Ben：一週三次。",
+"Nick：我總是在圖書館讀書。那你呢？Kim：我喜歡在家讀書。我哥哥可以教我。",
+"Helen：他們多久清掃一次街道？Gary：每兩天一次。",
+"David：那個白色鉛筆盒是 Kate 的。Ray：你確定嗎？她的鉛筆盒不是綠色的嗎？",
+"我媽媽總是煮晚餐。她每天都煮。",
+"Amy 多久拖一次地？一週兩次。",
+"我一週游泳一次。",
+"他們通常在週日倒垃圾。",
+"她總是很快樂。",
+"你常玩電玩嗎？不，我很少玩。",
+"Ben 多久打掃一次房間？他一週打掃兩次。"
+],
+b2l3:[
+"三月是一年中的第三個月。",
+"Peter：Sally，妳在臥室做什麼？Sally：我在寫信給 Mia。我想念她。",
+"現在是二月，棒球比賽在五月。我們還有三個月可以準備。",
+"Johnny 每天為了比賽練習。他不能再輸了。",
+"抱歉，Jones 小姐在忙。她現在不能和你說話。",
+"籃球比賽在 6 月 25 日。你想和我一起看嗎？",
+"小組會議是什麼時候？是下週一嗎？",
+"那隻大白狗不是我的。我的狗是白色的，但牠很小。",
+"Kevin：今天是幾月幾號？Fred：是 9 月 6 日。",
+"在美國，父親節是六月的第三個星期日。",
+"這是誰的毯子？是 Steve 的嗎？",
+"我這週末有空。我們一起吃個午餐或晚餐吧。",
+"Nancy：我的英文成績很好。謝謝你的幫忙。",
+"Michael 不能把這本書拿走。它不是他的。",
+"Nick：我好渴。哪裡可以買到果汁？Kelly：你可以去三樓。",
+"Helen：今天幾月幾號？Tom：我不確定。今天是六號還是七號？",
+"Tina 的生日再過 10 天就到了。我們沒時間為她準備特別的禮物。",
+"James：這個機器人不是給 Rose 的兒子的嗎？Tim：是的，是他的生日禮物。",
+"學生們正在教室裡讀書。不要在裡面聊天。",
+"紅色杯子是 Sally 的，藍色杯子也是她的。",
+"Kate：很多人在排隊。那邊第四個男孩是誰？Eric：他是 Mike。他在等著買博物館的票。",
+"Peter：你弟弟不喜歡熱狗嗎？Emma：你說得對，不過他現在不餓。",
+"媽媽：不，我們不能養狗。我們沒有時間照顧。Nathan：拜託，媽媽！我會好好照顧牠。",
+"聖誕節在 12 月 25 日。",
+"這是誰的筆？是 Tom 的。",
+"這個包包是我的。",
+"今天是 5 月 2 日。",
+"比賽在三月。",
+"這些書不是我們的。它們是他們的。",
+"「12 號」是 the twelfth。"
+],
+b2l4:[
+"把藍色和黃色混在一起，就可以得到綠色。",
+"我們這裡可以有十張椅子嗎？五張椅子不夠。",
+"我的寵物狗喜歡所有圓的東西。牠喜歡足球、籃球和西瓜。",
+"Sam 叔叔是農夫。他每天替他的蘋果樹和木瓜樹澆水。",
+"籃球對 Jeff 來說很容易。他下週五的比賽一定會贏。",
+"Kim：你每天早上給你兒子多少牛奶？Leo：我給他一大杯。",
+"Robert 喜歡柳橙汁。他每天喝三杯果汁。",
+"Rachel：桌上有幾個盤子？James：有三個。",
+"Sally 想做蛋糕。她需要兩顆蛋和一些麵粉。",
+"謝謝你的幫忙。英文現在對我來說很容易。",
+"Nathan：Lisa 還有多少時間？Helen：她還有兩個小時。",
+"Fee：我可以喝點水嗎？這裡好熱。Mia：當然。拿去吧。",
+"Gina：我可以用哪一支，紅筆還是藍筆？Dan：兩支你都可以用。",
+"桌上只有兩顆蘋果，但我需要五顆來做派。",
+"Sherry：你家有幾間臥室？Ken：只有兩間。",
+"首先，打開書閱讀。接著，談談你的想法。",
+"我媽媽總是把日期寫在每張照片的背面。",
+"我爸爸很忙。他每晚工作到八點。",
+"李老師走在前面，兩組學生跟在他後面。",
+"Jill：你晚上喝多少茶？Leo：只喝一杯。",
+"Kathy：我能幫你做什麼？Helen：請先幫我把平底鍋加熱。",
+"Zoe：你喜歡哪一個，蘋果汁還是柳橙汁？Ben：蘋果汁。蘋果是我的最愛。",
+"Sophia：這裡好冷。我可以拿一條毯子嗎？Tim：當然。給你。",
+"我需要一點鹽來煮湯。",
+"盒子裡有幾顆蛋。",
+"你想要幾顆蘋果？",
+"這個派多少錢？80 元。",
+"我想要兩瓶水。",
+"請加一些糖。",
+"把麵粉和蛋混合，直到麵糊準備好為止。"
+],
+b2l5:[
+"我們還有時間。考試在這週五，而現在才星期一。",
+"王老師是好老師。他的學生在他的課上學到很多。",
+"Brown 夫婦通常會造訪不同的城鎮去享受當地美食。",
+"Johnny 對他的弟弟們很好。他和他們分享玩具和書。",
+"Leo 數學不好。他的答案全都錯了。",
+"那些小 T 恤以前是我的，但現在是我妹妹的。",
+"Gary 昨晚沒有打掃房間。現在還是很髒。",
+"Rick：Nancy 有在魚派裡加鹽嗎？Ben：也許她沒有。她當時很趕。",
+"James：你以前是老師嗎？Dan：是的，我以前是英文老師。",
+"我哥哥總是一邊讀書一邊聽音樂。",
+"Nathan：Emma 有給你看她新寵物的照片嗎？Sharon：不，她沒有。是什麼？",
+"Jeremy 的家以前在臺中，但我的不是。",
+"Doris：Shelly 今天早上做了什麼？Frank：她為家人準備早餐。",
+"在姐姐的幫忙下，Lisa 存了新臺幣 3,000 元買新手機。",
+"當時博物館裡有多少學生？25 個還是 30 個？",
+"Rachel 昨天沒有參加足球練習。她太忙了。",
+"我可以幫你找你的手錶。我確定我們找得到。",
+"Jenny：你妹妹們當時幾歲？Dan：Kathy 才 3 歲，Lilly 6 歲。",
+"Larry 昨晚沒有去市場，但他的朋友們有去。",
+"十年前這個小鎮有很多美麗的老街。",
+"Mike：你上週五在哪裡？Ben：我和爸媽在家。",
+"Nick：Jane 不能加入我們的隊伍。Helen：你在開玩笑嗎？怎麼了？",
+"Helen：你上週六在臺北做了什麼？Larry：我去拜訪了一些朋友。我們一起看了電影。",
+"我昨天在家。",
+"他們上週日打了籃球。",
+"你昨天有去參觀博物館嗎？",
+"我們兩年前住在臺北。",
+"他們當時在營隊嗎？不，他們不在。",
+"他昨天爬了那棵樹。",
+"她昨晚沒有讀科學。"
+],
+b2l6:[
+"請把書闔上。我們開始考試吧，你們有 40 分鐘。",
+"我們沒有在那個房間讀書。它不夠亮，對眼睛不好。",
+"我們去山裡健行，一路上看到一些特別的樹和動物。",
+"Mike 把 T 恤丟掉了。它們現在對他來說太小了。",
+"Willy：你到美國了嗎？Leo：是的，我剛到。我還在機場。",
+"Johnson 太太上週末為她的女兒們做了一個美味的蛋糕。",
+"Lisa 和我們一起去了美食市集，但她哥哥沒有去。",
+"Fenny：Alex 早餐吃了什麼？Dan：他吃了兩顆蛋和一杯牛奶。",
+"棒球隊昨天得了第一名，每個人都很開心。",
+"我和朋友兩天前一起去了海灘。很棒。",
+"Karen：Robert 下午有睡覺嗎？Leo：是的，他有。他睡了 30 分鐘。",
+"Mia：誰吃了我的香蕉？10 分鐘前它還在這裡。",
+"不要把塑膠袋丟在這裡。那邊有垃圾桶。",
+"Hank：你在哪裡看到 Anderson 先生？Gary：我在學校門口看到他。",
+"Hank 的哥哥在足球隊工作。多虧了他，我們拿到了一些免費的票。",
+"Ken：Eric 沒有和 Dora 去看電影嗎？Owen：當然有。他喜歡各種電影。",
+"Gary 去年讀了那本英文書很多次。他真的很喜歡。",
+"Jim 總是隨身帶一兩個袋子。他從不使用塑膠袋。",
+"我妹妹沒有買鬆餅。她當時不餓。",
+"我們必須停止這個計畫。它對這座島不好。",
+"David：這個計畫是怎麼開始的？Aaron：事實上，它是從一個男孩開始的。他想拯救世界。",
+"Gary：我們到 Rose 公園了。Zoe：哇。我四、五年前來過這裡，現在變得好不一樣。",
+"Nick：大家都喜歡 Lisa。她在隊上做了什麼？Vicky：她有很多好點子，而且常常幫助別人。",
+"我上週日去了海灘。",
+"她昨天買了一個新的手提箱。",
+"我們兩天前在湖裡游泳。",
+"他上週帶自己的袋子去市場。",
+"這個計畫在 2013 年開始。",
+"你有保留那些舊照片嗎？是的，我有。",
+"他昨晚把垃圾丟掉了。"
+],
+b3l1:[
+"Johnson 太太上週末為她的女兒們做了一個很棒的蛋糕。",
+"Lisa 和我們一起去了美食節，但她哥哥沒有去。",
+"Fenny：Alex 早餐吃了什麼？Dan：他吃了兩顆蛋和一杯牛奶。",
+"Gary 昨晚沒有打掃房間。現在還是很髒。",
+"我和朋友兩天前去了博物館。很棒。",
+"Rick：Nancy 有在魚派裡加鹽嗎？Ben：也許她沒有。她當時很趕。",
+"Brown 老師總是和學生分享不同的經驗。",
+"我們家上個月去巴黎旅行，在那裡待了兩週。",
+"Karen：Robert 下午有睡覺嗎？Leo：是的，他有。他睡了 30 分鐘。",
+"Rita 和 Anne 是同學。她們在同一班。",
+"Hank：你在哪裡看到 Anderson 先生？Gary：我在學校門口看到他。",
+"山裡有一座湖，但我們不知道它的名字。",
+"Mia：誰吃了我的香蕉？10 分鐘前它還在這裡。Ken：我不知道。不是我。",
+"這部電影對 James 來說很難懂。他對故事有很多疑問。",
+"我哥哥總是一邊讀書一邊聽音樂。",
+"David：你上週五沒看籃球比賽嗎？Aaron：沒有，我沒看。我那天有小組會議。",
+"Cathy：有什麼東西吸引了你的目光？Nathan：有很多不同顏色的氣球。它們好漂亮。",
+"Helen：你上週六在臺北做了什麼？Larry：我去拜訪了一些朋友，還和他們一起吃晚餐。",
+"我們去年夏天搭了熱氣球。",
+"我在科學營學到很多有趣的事。",
+"她在姐姐的婚禮上唱了一首歌。",
+"你的假期過得怎麼樣？很棒。",
+"你上週末做了什麼？我去拜訪了我的祖父母。",
+"你昨天有去海灘嗎？",
+"他們不在海灘。他們在寺廟。",
+"Tom 昨天跟我說了一個好笑的故事。",
+"Amy 昨晚有看電視嗎？不，她沒有。",
+"那顆大氣球吸引了我的目光。",
+"一開始，我很怕那隻大狗。",
+"我握著爸爸的手時，覺得很安全。"
+],
+b3l2:[
+"我爸爸上個月剛買了一件新的冬季大衣給我。",
+"Rita：你為什麼不和我們一起吃蛋糕？Ben：我不餓。",
+"男孩們昨天很難過，因為他們輸了籃球比賽。",
+"Lisa：我可以用你的手機嗎？Mike：當然，它在我的書桌上。",
+"Karen 阿姨每年寄給我們一張漂亮的卡片。",
+"因為重感冒，我錯過了很多有趣的活動。",
+"這些故事書是 Nick 的。他上週把它們給了我。",
+"Mia：你哥哥為什麼 5:30 就起床？Fred：因為他 6:20 有足球練習。",
+"正在下雨，所以我們只能在客廳玩牌和聊天。",
+"Jessica 為她爸爸做了一個美味的草莓派。",
+"學生們為了那些數學問題開了小組會議。",
+"因為 Hank 從不分擔家事，他太太不開心。",
+"Rebecca 的眼睛顏色和我的不一樣。她有藍色的眼睛。",
+"Daniel：你有參加科學營嗎？Eric：沒有，我沒參加。我去鄉下看我爺爺。",
+"我喜歡籃球。至於我的姐妹們，她們熱愛棒球。",
+"Benson：我可以和 Thomas 說話嗎？Thomas：我就是 Thomas。",
+"Matthew：你的臉色發白，手又冰冷。發生什麼事了？Patrick：我覺得不舒服，想去看醫生。",
+"Henry：你為什麼帶這本故事書來學校？Wendy：因為我想和 Karen 一起看。",
+"我感冒了，所以我待在家裡。",
+"他沒去上學，因為他發燒了。",
+"因為頭痛，她待在家裡。",
+"你為什麼沒去看醫生？因為我很忙。",
+"我媽媽傳了一則訊息給我。",
+"你可以把那本書帶來給我嗎？",
+"請把藥拿給你奶奶。",
+"爸爸為我做了一個三明治。",
+"穿上你的大衣。外面很冷。",
+"你應該配溫水吃這個藥。",
+"Ben 為什麼去醫院？因為他的腿受傷了。",
+"太糟了！希望你早日好起來。"
+],
+b3l3:[
+"Melissa 有空的時候，會帶她的兒子們去圖書館。",
+"Jeremy 昨晚八點正在和太太吃晚餐。",
+"Rachel：我們什麼時候可以進博物館？現在 8:30。Cathy：8:45。我們要等 15 分鐘。",
+"Mike：你姐姐那時在做什麼？Gina：她正在泡澡。",
+"兩年前，Kevin 生病的時候從不去看醫生。",
+"我到家的時候，Johnny 正在講電話。",
+"Nancy 去餐廳之前打掃了她的臥室。",
+"Ben：你今天早上十點在看什麼書？Rita：《Wonderland》。那是我最喜歡的書。",
+"你在我睡了以後才傳那些訊息。所以我沒看到。",
+"有 12 塊派。請把它們一塊一塊放到盤子上。",
+"Hugo 喜歡游泳。他在水裡可以想到很多好點子。",
+"練習 7:30 開始，所以球員們要在 6:40 起床。",
+"Leo：那時是誰在和李老師說話？Mark：我不知道。我不在那裡。",
+"Jessie 去野餐之前，為大家準備了很多食物。",
+"Ray：你今天有和 Larry 說話嗎？Karen：不，我沒有。你為什麼問？",
+"Mika：你下午五點在做什麼？Hank：我那時正在公園遛 Lucky。",
+"Michael：我今天終於贏了網球比賽。Chris：做得好！我真為你驕傲。",
+"Frank：嘿，你是不是剛剛掉了鑰匙？Emma：不，那不是我的。我的在這裡。",
+"我媽媽回家時，我正在看電視。",
+"他們昨天下午四點正在打籃球。",
+"你昨晚九點在做什麼？我正在寫功課。",
+"你那時在睡覺嗎？不，我沒有。",
+"現在 7:15。是七點十五分。",
+"現在 6:30。是六點半。",
+"我寫完功課之後，看了電視。",
+"吃晚餐前要洗手。不要用髒手吃東西。",
+"烏鴉把石頭一顆一顆撿起來。",
+"我爸媽以我為榮。",
+"那隻狗在院子裡跑來跑去。",
+"Tom 那時正在過馬路嗎？是的，他是。"
+],
+b3l4:[
+"Sandy 小時候很喜歡在公園玩。",
+"Gary 喜歡在兒子們睡前講故事給他們聽。",
+"Smith 老師：上課看手機是不對的。請不要再這樣做。Nicole：對不起，Smith 老師。",
+"Brian 一直打掃房子，直到他爸媽回家。",
+"學習照顧動物對孩子們很好。",
+"Karen 想在圖書館讀書，但那天圖書館沒開。",
+"唱歌和寫歌是不同的。不是每個歌手都會寫歌。",
+"Alex 和他的朋友們打算放學後一起彈吉他。",
+"Leo 一天需要吃三次藥。",
+"保持安靜對男孩們來說不容易。他們就是忍不住一直製造噪音。",
+"Helen 是個好演員，她也很會跳舞。",
+"你不能只聽 Cathy 的話。每件事都有兩面。",
+"Thomas 要在一天內完成那麼多工作很困難。",
+"Sam 太餓了，所以他沒先洗手就開始吃東西。",
+"Nina 喜歡和狗玩。她未來想養一隻。",
+"Nick：我想當廚師，開一家餐廳。Joyce：你是認真的嗎？你連在廚房幫你媽媽都沒有。",
+"Kate：你這週末不想跟我們去看電影嗎？Dan：嗯，我想去，但另一方面，我必須照顧我弟弟。",
+"Mandy：你為什麼常去慢跑或運動？Dora：因為一週運動三次很重要。",
+"我未來想當 YouTuber。",
+"繼續練習。你做得很好！",
+"每天說英文很重要。",
+"和朋友一起玩很有趣。",
+"他決定為考試用功讀書。",
+"你喜歡看漫畫嗎？",
+"我今晚必須熬夜。",
+"她很會唱歌。",
+"謝謝你幫助我。",
+"他們和一些朋友組隊拍影片。",
+"我的夢想是成為有名的歌手。",
+"你沒寫完功課就不能看電視。"
+],
+b3l5:[
+"Karen 這週五下午會教我數學。",
+"孩子們下週要去拜訪他們的老師。",
+"我不打算參加音樂社，但我的姐妹們會。",
+"Fay：你今天晚一點要打電話給李老師嗎？Sam：是的，大概晚上六點。",
+"請記得把書帶來學校。我們明天需要它。",
+"John 會去看籃球比賽，但他弟弟不會。",
+"Daniel 下週六要和女朋友前往加拿大。",
+"Diana：你明天會去開會嗎？Anne：當然。每個人都得去。",
+"Alex：你走路到銀行花了多久？Mandy：大約 15 分鐘。我住在附近。",
+"學校裡將會有一間新圖書館。我們等不及要去了。",
+"學生們應該互相幫忙寫歷史作業。",
+"Kate 熱愛音樂。她每天花兩小時彈吉他。",
+"我爸爸有空的時候喜歡去游泳。這對他的健康很好。",
+"Ken 上個月得了重感冒。他花了將近三週才恢復健康。",
+"母親節快到了，Shelly 決定為媽媽做一個蛋糕。",
+"Andy：你要把這張可愛的卡片送給誰？我猜猜看。Sally？Peter：不是，Sally 的生日在下個月。這張卡片是給我女兒的。",
+"Rachel：你花了多久讀完這本書？Mike：只花了兩天。這本書真的很有趣。",
+"James：你這週末要做什麼？Lisa：我要和姐妹們去美術館。",
+"我們明年夏天會去日本。",
+"她明天要去書店嗎？是的，她要去。",
+"你今晚會在家嗎？不，我不會。",
+"明天會下雨。帶著你的傘。",
+"他們下週五要辦派對。",
+"我走路到學校要花 20 分鐘。",
+"我花了兩小時寫功課。",
+"去公園要花多久時間？",
+"離開時記得鎖門。",
+"假期期間你打算做什麼？",
+"我明天要前往東京。",
+"她決定買一打雞蛋。"
+],
+b3l6:[
+"麵包店在 First 街和 Wilson 路的轉角。",
+"Lisa：我要怎麼去郵局？Sam：直走兩個街區，郵局就在你的右邊。",
+"Henry 和他的同學通常搭公車上學。",
+"John 花了三百元買禮物給他弟弟。",
+"我忘了在第一個轉角右轉，所以沒找到那家餐廳。",
+"Larry 昨晚講電話講了兩個小時。",
+"Kevin：我現在在圖書館。我要怎麼去花店？Nina：穿過馬路。花店在圖書館對面。",
+"Emma 昨天給我們看了那些照片，我們都很喜歡。",
+"教堂在圖書館和超市之間。",
+"我妹妹要我幫她寫報告，但我沒有幫她。",
+"Miller 老師通常搭捷運上學。",
+"Frank 只花了 20 元買那袋蘋果。",
+"沿著這條街走三個街區，你就會看到我的店。",
+"對 Hank 來說，夏天在海灘游泳總是很好玩。",
+"我今天早上七點前就得去學校，所以沒吃早餐。",
+"Mike：你怎麼去圖書館的？Jay：騎腳踏車。晴天騎腳踏車很棒。",
+"Rachel：你買那件大衣花了多少錢？Sandy：我付了將近三千元。",
+"David：我忘了那部電影的名字。你記得嗎？Alex：你何不問問 Nancy？她很喜歡裡面的那個演員。",
+"這本書花了我 200 元。",
+"我花了 500 元買這雙鞋。",
+"我走路到車站要花十分鐘。",
+"在第二個轉角右轉。",
+"銀行在郵局和學校之間。",
+"那家店在銀行旁邊。",
+"我走路上學。",
+"他騎腳踏車上班。",
+"不好意思。我要怎麼去飯店？",
+"她把所有的錢都花在衣服上。",
+"公園在我家對面。",
+"直走兩個街區，銀行就在你的左邊。"
+]
+};
+
+/* 各課文法重點 */
+const POINTS={
+b1l1:["be 動詞：I → am；you / we / they → are；he / she / it → is","Yes/No 問句：Be 動詞 + 主詞 …？→ Yes, he is. / No, he isn't.（肯定簡答不縮寫）","Who + be 動詞 + 主詞？問「是誰」","所有格：my, your, his, her, its, our, their","a + 子音開頭；an + 母音開頭（an English teacher）"],
+b1l2:["this（這個）/ that（那個）→ 單數 is；these（這些）/ those（那些）→ 複數 are","名詞複數：一般加 s；s, x, ch, sh 結尾加 es；mouse → mice；sheep 單複數同形","What are these? → They're ….","Is that …? → Yes, it is.；Are those …? → No, they aren't."],
+b1l3:["Let's + 原形動詞 = 我們來……吧","祈使句：原形動詞開頭（Please come in.）","否定祈使句：Don't + 原形動詞（Don't be late.）","形容詞前面用 Be：Be quiet."],
+b1l4:["can + 原形動詞（不加 s）","Can you …? → Yes, I can. / No, I can't.","受格代名詞：me, you, him, her, it, us, them（放在動詞或介系詞後面）"],
+b1l5:["現在進行式：am / is / are + V-ing（正在做）","What are you doing? → I'm + V-ing.","V-ing 變化：make → making（去 e）；swim → swimming（重複字尾）"],
+b1l6:["There is + 單數名詞；There are + 複數名詞（有……）","Is there …? → Yes, there is. / No, there isn't.","some 用在肯定句；any 用在否定句和問句"],
+b2l1:["現在簡單式：表示習慣、每天做的事（every day, on weekends）","第三人稱單數（he / she / it / 人名）動詞加 s / es：plays, watches, goes, has","否定：don't / doesn't + 原形動詞","問句：Do / Does + 主詞 + 原形動詞？→ Yes, he does. / No, he doesn't.","What does + 主詞 + do？問做什麼"],
+b2l2:["頻率副詞：always > usually > often > sometimes > seldom > never","位置：放在 be 動詞後面、一般動詞前面（He is always late. / She often cooks.）","How often …? 問頻率","次數：once, twice, three times + a week / a month；every two days 每兩天"],
+b2l3:["日期用序數：first, second, third, fourth … twelfth, twentieth","日期前用 on（on May 2nd）；月份前用 in（in May）","What's the date today? 問日期；What day is it today? 問星期幾","Whose + 名詞 …？問「誰的」","所有格代名詞：mine, yours, his, hers, ours, theirs（= 所有格 + 名詞）"],
+b2l4:["可數名詞：How many + 複數名詞？；a few 幾個","不可數名詞：How much + 名詞？；a little 一點（water, milk, salt, flour, time）","不可數名詞用單位計算：a cup of tea, two bottles of water","Which …, A or B? 二選一用 Which","How much is / are …? 問價錢"],
+b2l5:["be 動詞過去式：I / he / she / it → was；you / we / they → were","一般動詞過去式：規則動詞加 ed（played, studied, stopped）","否定：didn't + 原形動詞；問句：Did + 主詞 + 原形動詞？","過去時間：yesterday, last night, two days ago, then"],
+b2l6:["不規則動詞過去式：go → went, eat → ate, see → saw, buy → bought, bring → brought","make → made, win → won, swim → swam, begin → began, throw → threw, read → read","did 後面一律接原形動詞（Did you see …? / didn't buy）"],
+b3l1:["過去式描述過去發生的事：last weekend, yesterday, … ago","Did + 主詞 + 原形動詞？→ Yes, I did. / No, I didn't.","What did you do …? 問做了什麼；How was …? 問覺得如何","常見不規則動詞：ride → rode, sing → sang, tell → told, feel → felt, hold → held"],
+b3l2:["because + 句子（原因）；because of + 名詞","so + 句子（結果）；because 和 so 不能同時出現在同一句","Why …? 問原因 → Because ….","give / send / show / bring 物 to 人；buy / make 物 for 人；或直接用「動詞 + 人 + 物」"],
+b3l3:["過去進行式：was / were + V-ing（過去某個時間正在做）","搭配：at 8 last night, then, at that time, when I got home","when（當……時）、before（在……之前）、after（在……之後）","時間：a quarter past 7 = 7:15；half past 6 = 6:30；a quarter to 9 = 8:45；twenty to 7 = 6:40"],
+b3l4:["want / plan / decide / need / hope + to V","enjoy / keep / practice / finish + V-ing","like / love / start 兩種都可以（to V 或 V-ing）","動名詞 V-ing 可以當主詞（Speaking English is important.）","It is + 形容詞 + (for 人) + to V；介系詞（at, for, without）後面接 V-ing"],
+b3l5:["未來式：will + 原形動詞；否定 won't","be going to + 原形動詞（打算……）","There is going to be … 將會有……","花時間：It takes + 人 + 時間 + to V；How long does it take …?","人 + spend + 時間 / 錢 + V-ing（或 on + 名詞）；remember to V 記得去做"],
+b3l6:["問路：How do I get to …? / Excuse me.","Walk straight / along the street；turn right / left at the corner","位置：next to, across from, between A and B, on the corner of","交通：by bus / by bike；on foot；take the metro","花錢：物 + cost + 人 + 錢；人 + spend + 錢 + on 物；人 + pay + 錢 + for 物"]
+};
+
+LESSONS.forEach(l=>l.grammar.forEach((g,i)=>{if(TR[l.id])g.zh=TR[l.id][i]}));
+function zhOf(q){if(q.zh)return q.zh;const L=LESSONS.find(l=>l.id===q.lid);if(!L)return"";const g=L.grammar.find(x=>x.q===q.q&&x.a===q.a);return g?g.zh||"":""}
+function pointsHTML(lid){const p=POINTS[lid];if(!p)return"";return `<h3>📘 ${lessonOf(lid).no} 文法重點</h3><ul>${p.map(x=>`<li>${x}</li>`).join("")}</ul>`}
+const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");
+function fullSentence(q){ // 把答案填回題目
+  if(/[\u4e00-\u9fff]/.test(q.q)&&!/___/.test(q.q))return `<mark>${esc(q.a)}</mark>`;
+  let txt=q.q.replace(/（.*?）/g,"").replace(/^.*?[。」]+(?=[A-Z])/,"")+(q.h&&!/[\u4e00-\u9fff]/.test(q.h)?"\u0001"+q.h:"");
+  const n=(txt.match(/___/g)||[]).length;
+  if(!n)return esc(txt).replace("\u0001","<br>")+`<br>→ <mark>${esc(q.a)}</mark>`;
+  const parts=n>1&&q.a.includes("; ")?q.a.split("; "):Array(n).fill(q.a);
+  let i=0;return esc(txt).replace(/___/g,()=>{let p=(parts[i++]||"").replace(/（.*?）/g,"").trim();if(p==="X")p="";return p?`<mark>${esc(p)}</mark>`:""}).replace(/ {2,}/g," ").replace(/\s+([,.?!])/g,"$1").replace("\u0001","<br>");
+}
+/* ================= 共用 ================= */
+const RANKS=[["青銅",0],["白銀",100],["黃金",300],["白金",600],["鑽石",1000],["大師",1600],["傳說",2500]];
+const $=id=>document.getElementById(id);
+const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+const pickN=(a,n)=>shuffle(a).slice(0,n);
+const isEn=s=>/^[\x00-\x7F]+$/.test(s);
+const lessonOf=id=>LESSONS.find(l=>l.id===id)||LESSONS[0];
+let lessonId=store.get("lesson","b3l1");
+if(!LESSONS.some(l=>l.id===lessonId))lessonId="b3l1";
+const lesson=()=>lessonOf(lessonId);
+let muted=store.get("muted",false);
+const todayKey=()=>{const d=new Date();return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate()};
+
+/* 錯題本：[{key, lesson, w(單字陣列) 或 q(文法題), streak}] */
+const getWrong=()=>store.get("wrong3",[]);
+const setWrong=v=>store.set("wrong3",v);
+const keyOf=(lid,q,w)=>lid+"|"+(w?"v:"+w[0]:q.q+"|"+q.a);
+const learned=lid=>store.get("learned",{})[lid]||[];
+/* 清掉題庫裡已不存在的錯題（例如舊版的閱讀題） */
+(function(){try{
+  const ok=getWrong().filter(x=>{const L=LESSONS.find(l=>l.id===x.lesson);if(!L)return false;
+    return x.w?L.vocab.some(v=>v[0]===x.w[0]):L.grammar.some(g=>g.q===x.q.q&&g.a===x.q.a)});
+  if(ok.length!==getWrong().length)setWrong(ok);
+}catch(e){}})();
+
+/* ================= 音效 ================= */
+let actx=null;
+function tone(seq){ if(muted)return; try{
+  actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+  let t=actx.currentTime;
+  seq.forEach(([f,d,type])=>{const o=actx.createOscillator(),g=actx.createGain();o.type=type||"square";o.frequency.value=f;
+    g.gain.setValueAtTime(.07,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g);g.connect(actx.destination);o.start(t);o.stop(t+d);t+=d*.85});
+}catch(e){} }
+const sfx={ok:()=>tone([[660,.09],[880,.09],[1320,.16]]),no:()=>tone([[220,.18,"sawtooth"],[160,.25,"sawtooth"]]),
+  star:()=>tone([[523,.1],[659,.1],[784,.1],[1047,.3]]),tap:()=>tone([[440,.04]]),clear:()=>tone([[784,.08],[1047,.08],[1568,.2]])};
+/* 指定英文語音：預設語音常是中文，會把英文唸得很怪 */
+let enVoice=null;
+function pickVoice(){ try{
+  const vs=speechSynthesis.getVoices().filter(v=>/^en[-_]/i.test(v.lang)||v.lang==="en");
+  const prefer=[/Google US English/i,/Samantha/i,/Aria|Jenny|Zira|Guy/i,/en[-_]US/i,/Google UK English/i,/en[-_]GB/i];
+  enVoice=null;for(const r of prefer){const v=vs.find(x=>r.test(x.name)||r.test(x.lang));if(v){enVoice=v;break}}
+  if(!enVoice&&vs.length)enVoice=vs[0];
+}catch(e){} }
+try{pickVoice();speechSynthesis.onvoiceschanged=pickVoice}catch(e){}
+function cleanSpeak(s){return s.replace(/\.\.\./g," ").replace(/\s*\/\s*/g,", ").replace(/\(.*?\)/g,"").replace(/^-/,"").replace(/one's/g,"one's").trim()}
+function say(text){ if(muted||!text)return; try{
+  if(!enVoice)pickVoice();
+  $("voiceNote").hidden=!!enVoice||!speechSynthesis.getVoices().length;
+  speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(cleanSpeak(text));
+  if(enVoice){u.voice=enVoice;u.lang=enVoice.lang}else u.lang="en-US";
+  u.rate=.9;u.pitch=1;speechSynthesis.speak(u)}catch(e){} }
+
+/* ================= 粒子 ================= */
+const cv=$("fx"),cx=cv.getContext("2d");let parts=[];
+const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+function resize(){cv.width=innerWidth*devicePixelRatio;cv.height=innerHeight*devicePixelRatio}resize();addEventListener("resize",resize);
+function burst(x,y,n){ if(reduce)return; const start=!parts.length,d=devicePixelRatio,C=["#1f6bff","#ffc41f","#ff6a2b","#12a85a"];
+  for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,s=2+Math.random()*6;
+  parts.push({x:x*d,y:y*d,vx:Math.cos(a)*s*d,vy:Math.sin(a)*s*d-3*d,l:1,c:C[i%4],r:(3+Math.random()*4)*d})}
+  if(start)requestAnimationFrame(loop)}
+function loop(){const d=devicePixelRatio;cx.clearRect(0,0,cv.width,cv.height);parts=parts.filter(p=>p.l>0);
+  parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.25*d;p.l-=.02;cx.globalAlpha=Math.max(p.l,0);cx.fillStyle=p.c;cx.fillRect(p.x,p.y,p.r,p.r)});
+  if(parts.length)requestAnimationFrame(loop);else cx.clearRect(0,0,cv.width,cv.height)}
+
+/* ================= 星星 / 紀錄 ================= */
+function addLog(ev,st,m,c){const log=store.get("log3",[]);log.unshift({ts:Date.now(),ev,st,m:m||0,c:c||""});store.set("log3",log.slice(0,80));drawLog()}
+function giveStar(reason){
+  store.set("stars",store.get("stars",0)+1);addXp(30);addLog(reason,"+1");
+  sfx.star();burst(innerWidth/2,innerHeight*.35,70);
+  const p=document.createElement("div");p.className="starpop";p.textContent="⭐ +1";document.body.appendChild(p);setTimeout(()=>p.remove(),1700);
+  drawWallet();
+}
+function addXp(n){store.set("xp",store.get("xp",0)+n);drawHud()}
+function addEnergy(n){ // 文法能量，滿了換星星
+  let e=store.get("energy",0)+n;
+  while(e>=GRAMMAR_NEED){e-=GRAMMAR_NEED;store.set("energy",e);giveStar("文法集滿")}
+  store.set("energy",e);drawMeters();
+}
+
+/* ================= 畫面 ================= */
+function drawHud(){
+  const xp=store.get("xp",0);let r=0;RANKS.forEach((k,i)=>{if(xp>=k[1])r=i});
+  $("rankName").textContent=RANKS[r][0];$("bestCombo").textContent=store.get("bestCombo",0);
+  $("xpText").textContent="XP "+xp;
+  if(r<RANKS.length-1){const lo=RANKS[r][1],hi=RANKS[r+1][1];$("xpBar").style.width=((xp-lo)/(hi-lo)*100)+"%";$("xpNext").textContent=`下一級：${RANKS[r+1][0]} ${hi} XP`}
+  else{$("xpBar").style.width="100%";$("xpNext").textContent="最高等級！"}
+  $("mute").textContent=muted?"🔇":"🔊";
+}
+$("mute").onclick=()=>{muted=!muted;store.set("muted",muted);drawHud()};
+function drawWallet(){
+  $("starCount").textContent=store.get("stars",0);$("perStar").textContent=MIN_PER_STAR;
+  const t=store.get("today",{d:"",m:0});$("todayMin").textContent=t.d===todayKey()?t.m:0;
+  $("redeem").disabled=store.get("stars",0)<1;
+}
+function drawMeters(){
+  const e=store.get("energy",0);const html="<i></i>".repeat(GRAMMAR_NEED);
+  $("gMeterHome").innerHTML=html;[...$("gMeterHome").children].forEach((c,i)=>c.classList.toggle("on",i<e));
+  $("gNeed").textContent=GRAMMAR_NEED;
+}
+const bookOf=l=>l.id.slice(0,2);
+const BOOK_NAME={b1:"第一冊",b2:"第二冊",b3:"第三冊",b4:"第四冊",b5:"第五冊",b6:"第六冊"};
+function drawHome(){
+  const cur=bookOf(lesson());
+  $("books").innerHTML="";
+  [...new Set(LESSONS.map(bookOf))].forEach(b=>{const t=document.createElement("button");t.className="book-tab";t.textContent=BOOK_NAME[b]||b;t.setAttribute("aria-pressed",b===cur);
+    t.onclick=()=>{if(b!==cur){lessonId=LESSONS.find(l=>bookOf(l)===b).id;store.set("lesson",lessonId);sfx.tap();drawHome()}};$("books").appendChild(t)});
+  $("lessons").innerHTML="";
+  LESSONS.filter(l=>bookOf(l)===cur).forEach(l=>{const b=document.createElement("button");b.className="lesson";b.setAttribute("aria-pressed",l.id===lessonId);
+    b.innerHTML=`<span class="no">${l.no}</span><span class="ttl">${l.title}</span>`;
+    b.onclick=()=>{lessonId=l.id;store.set("lesson",lessonId);sfx.tap();drawHome()};$("lessons").appendChild(b)});
+  const L=lesson();$("vocabProg").textContent=`已背 ${learned(L.id).length} / ${L.vocab.length}`;
+  const n=getWrong().length,locked=n>=LOCK_AT;
+  $("goVocab").disabled=locked;$("goGrammar").disabled=locked;$("lockMsg").hidden=!locked;
+  $("lockMsg").textContent=`🔒 錯題已經 ${n} 題！先到下面的錯題本複習，清到 ${LOCK_AT-1} 題以下才能繼續集星星。`;
+  drawBook();drawMeters();drawWallet();
+}
+function drawBook(){
+  const w=getWrong(),n=w.length;
+  $("wCount").textContent=n;$("wLock").textContent=LOCK_AT;
+  document.querySelectorAll(".lockN").forEach(e=>e.textContent=LOCK_AT);document.querySelectorAll(".clearNeed").forEach(e=>e.textContent=CLEAR_NEED);
+  $("wMeter").style.width=Math.min(n/LOCK_AT,1)*100+"%";
+  $("wList").innerHTML=w.slice(0,8).map(x=>{const label=x.w?x.w[0]:x.q.q.replace(/___/g,"__");
+    return `<div class="witem"><span>${lessonOf(x.lesson).no}・${label}</span><span class="dots">${"●".repeat(x.streak)+"○".repeat(CLEAR_NEED-x.streak)}</span></div>`}).join("")
+    +(n>8?`<div class="witem"><span>還有 ${n-8} 題…</span><span></span></div>`:"")
+    +(n?"":`<div class="witem"><span>目前沒有錯題，保持下去！</span><span></span></div>`);
+  $("goReview").disabled=!n;
+}
+const SCREENS=["home","book","pick","study","quiz","result","redeemScr","clock"];
+function show(id){SCREENS.forEach(s=>$(s).hidden=!(s===id||(id==="home"&&s==="book")));$("wallet").hidden=!(id==="home"||id==="result");scrollTo({top:0,behavior:"smooth"})}
+function goHome(){speechSynthesis&&speechSynthesis.cancel&&speechSynthesis.cancel();drawHome();show("home")}
+document.querySelectorAll("[data-quit]").forEach(b=>b.onclick=goHome);
+
+/* ================= 出題 ================= */
+function vocabQ(L,w,pool){
+  const others=(pool||L.vocab).filter(x=>x[0]!==w[0]);
+  const src=others.length>=3?others:L.vocab.filter(x=>x[0]!==w[0]);
+  const types=["en2zh","zh2en","listen"];if(w[2])types.push("pic");
+  const t=types[Math.random()*types.length|0],d=pickN(src,3);
+  const base={k:"v",w,lid:L.id,ex:`${w[0]} = ${w[1]}`,say:w[0]};
+  if(t==="en2zh")return{...base,t:"單字・英翻中",q:`<span class="en">${w[0]}</span> 是什麼意思？`,a:w[1],o:[w[1],...d.map(x=>x[1])]};
+  if(t==="zh2en")return{...base,t:"單字・中翻英",q:`「${w[1]}」的英文是？`,a:w[0],o:[w[0],...d.map(x=>x[0])]};
+  if(t==="listen")return{...base,t:"單字・聽力",q:"聽發音，選出正確的單字",auto:1,a:w[0],o:[w[0],...d.map(x=>x[0])]};
+  return{...base,t:"單字・看圖",pic:w[2],q:"這是什麼？",a:w[0],o:[w[0],...d.map(x=>x[0])]};
+}
+function grammarQ(x,lid){return{...x,k:"g",lid,t:x.t||"文法",say:!/___/.test(x.q)&&!/[一-鿿]/.test(x.q)?x.q.replace(/^[AB]:\s*/,""):null}}
+
+/* ================= 背單字 ================= */
+let batch=[],si=0;
+function startVocab(sameBatch){
+  const L=lesson();
+  if(!sameBatch){
+    const done=learned(L.id);let fresh=L.vocab.filter(w=>!done.includes(w[0]));
+    if(fresh.length<VOCAB_N)fresh=fresh.concat(shuffle(L.vocab.filter(w=>done.includes(w[0]))));
+    batch=shuffle(fresh.slice(0,Math.max(VOCAB_N,0))).slice(0,VOCAB_N);
+  }
+  si=0;$("studyDots").innerHTML="<i></i>".repeat(batch.length);drawStudy();show("study");
+}
+function drawStudy(){
+  const w=batch[si];
+  $("studyLabel").textContent=`背單字 ${si+1} / ${batch.length}`;
+  [...$("studyDots").children].forEach((d,i)=>d.classList.toggle("on",i<=si));
+  $("sTag").textContent=w[0].includes(" ")?"片語":"單字";
+  $("sPic").hidden=!w[2];$("sPic").textContent=w[2]||"";
+  $("sWord").textContent=w[0];$("sZh").textContent=w[1];
+  $("sPrev").disabled=si===0;$("sNext").textContent=si<batch.length-1?"下一個 ▶":"背好了，開始測驗 ▶";
+  setTimeout(()=>say(w[0]),200);
+}
+$("sSpeak").onclick=()=>say(batch[si][0]);
+$("sPrev").onclick=()=>{if(si>0){si--;drawStudy()}};
+$("sNext").onclick=()=>{if(si<batch.length-1){si++;drawStudy()}else startQuiz("vocab",shuffle(batch).map(w=>vocabQ(lesson(),w,lesson().vocab)))};
+
+/* ================= 答題（三種模式共用） ================= */
+let qmode="",round=[],idx=0,score=0,answered=false,combo=0;
+function startQuiz(m,qs){
+  qmode=m;round=qs;idx=0;score=0;combo=0;
+  $("quizTag").textContent={vocab:"單字測驗",grammar:"文法闖關",review:"錯題複習"}[m];
+  $("quizTag").style.background=m==="review"?"var(--hot)":"var(--blue)";
+  $("quitQuiz").textContent=m==="vocab"?"放棄":"結束";
+  if(m==="vocab")$("cells").innerHTML="<i></i>".repeat(round.length);
+  show("quiz");render();
+}
+function buildGrammar(n){ // 不重複抽題；題數比題庫多時才會重新洗牌再出
+  const L=lesson();let out=[];
+  while(out.length<n){out=out.concat(shuffle(L.grammar))}
+  return out.slice(0,n).map(x=>grammarQ(x,L.id));
+}
+function openPick(){
+  const L=lesson();$("pickLabel").textContent=`${L.no} 文法闖關`;
+  $("pickInfo").textContent=`這一課有 ${L.grammar.length} 題（都是選擇題）。每答對 1 題充 1 格，滿 ${GRAMMAR_NEED} 格得 ⭐1。`;
+  $("counts").innerHTML="";
+  COUNT_OPTIONS.forEach(n=>{const b=document.createElement("button");b.className="go"+(n===COUNT_OPTIONS[0]?" volt":"");
+    b.innerHTML=`${n}<small>${n>L.grammar.length?"題目會重複":"題"}</small>`;
+    b.onclick=()=>{sfx.tap();startQuiz("grammar",buildGrammar(n))};$("counts").appendChild(b)});
+  $("pickPoints").innerHTML=pointsHTML(L.id);$("pickPoints").hidden=!POINTS[L.id];
+  show("pick");
+}
+function nextReview(){
+  const w=getWrong();if(!w.length)return null;
+  const prevKey=round[idx]&&round[idx].review;
+  const pool=w.length>1?w.filter(x=>x.key!==prevKey):w;const x=pool[Math.random()*pool.length|0];
+  return{...(x.w?vocabQ(lessonOf(x.lesson),x.w):x.q),review:x.key};
+}
+function fmtQ(s){return s.replace(/___/g,'<span class="blank"></span>')}
+function drawCells(){
+  if(qmode==="vocab"){[...$("cells").children].forEach((c,i)=>c.classList.toggle("on",i<score))}
+  else{const e=store.get("energy",0);$("cells").innerHTML="<i></i>".repeat(GRAMMAR_NEED);[...$("cells").children].forEach((c,i)=>c.classList.toggle("on",i<e))}
+}
+function render(){
+  const q=round[idx];answered=false;
+  $("qno").textContent=qmode==="review"?`錯題剩 ${getWrong().length} 題`:`Q${idx+1} / ${round.length}`;
+  drawCells();
+  $("combo").textContent=combo>=2?`🔥 COMBO x${combo}`:"";
+  $("qtype").textContent=(q.review?"📕 錯題・":"")+q.t;
+  $("pic").hidden=!q.pic;$("pic").textContent=q.pic||"";
+  $("prompt").innerHTML=isEn(q.q)?`<span class="en">${fmtQ(q.q)}</span>`:fmtQ(q.q);
+  $("hint").hidden=!q.h;$("hint").innerHTML=q.h?fmtQ(q.h):"";
+  $("speak").hidden=!q.say;
+  $("fb").innerHTML="";$("next").hidden=true;
+  const opts=shuffle(q.o);
+  $("opts").className="opts"+(opts.some(o=>o.length>14)?" long":"");$("opts").innerHTML="";
+  opts.forEach(o=>{const b=document.createElement("button");b.className="opt"+(isEn(o)?" en":"");b.textContent=o;b.onclick=()=>pick(b,o);$("opts").appendChild(b)});
+  if(q.auto)setTimeout(()=>say(q.say),350);
+}
+$("speak").onclick=()=>say(round[idx].say);
+
+function recordWrong(q){
+  const w=getWrong(),key=q.review||keyOf(q.lid,q,q.w);const hit=w.find(x=>x.key===key);
+  if(hit)hit.streak=0;else{const c={...q};delete c.review;w.push({key,lesson:q.lid,w:q.w||null,q:q.w?null:c,streak:0})}
+  setWrong(w);
+}
+function recordReviewRight(q){
+  const w=getWrong(),hit=w.find(x=>x.key===q.review);if(!hit)return null;
+  hit.streak++;if(hit.streak>=CLEAR_NEED){setWrong(w.filter(x=>x.key!==q.review));return "clear"}
+  setWrong(w);return hit.streak;
+}
+function detailHTML(q){
+  if(q.k!=="g")return `<p>${q.ex}</p>`;
+  const zh=zhOf(q);
+  return `<div class="sent">${fullSentence(q)}</div>`+(zh?`<p><span class="lbl">翻譯</span>${zh}</p>`:"")+`<p><span class="lbl">解析</span>${q.ex}</p>`
+   +(POINTS[q.lid]?`<button class="pt-btn" onclick="var d=this.nextElementSibling;d.hidden=!d.hidden">📘 看本課文法重點</button><div class="points" hidden style="margin-top:8px">${pointsHTML(q.lid)}</div>`:"");
+}
+function pick(btn,o){
+  if(answered)return;answered=true;
+  const q=round[idx],ok=o===q.a;
+  [...$("opts").children].forEach(b=>{b.disabled=true;if(b.textContent===q.a)b.classList.add("right")});
+  let extra="";
+  if(ok){
+    score++;combo++;if(combo>store.get("bestCombo",0))store.set("bestCombo",combo);
+    const gain=10+Math.min(combo-1,5)*2;addXp(gain);
+    const r=btn.getBoundingClientRect();burst(r.left+r.width/2,r.top+r.height/2,24);
+    const p=document.createElement("div");p.className="pop";p.textContent=`+${gain} XP`;$("qcard").appendChild(p);setTimeout(()=>p.remove(),900);
+    if(qmode==="grammar"){sfx.ok();addEnergy(1)}
+    else if(qmode==="review"){const st=recordReviewRight(q);
+      if(st==="clear"){sfx.clear();extra=`<p><b>📕 這題清掉了！文法能量 +1</b></p>`;addEnergy(1)}
+      else{sfx.ok();extra=`<p class="sub">清除進度 ${"●".repeat(st)}${"○".repeat(CLEAR_NEED-st)}，再答對 ${CLEAR_NEED-st} 次就清掉。</p>`}}
+    else sfx.ok();
+    $("fb").innerHTML=`<div class="fb ok"><strong>${["答對！","太強了！","完美！","命中！"][Math.random()*4|0]}${combo>=2?` 連擊 x${combo}`:""}</strong>${detailHTML(q)}${extra}</div>`;
+  }else{
+    combo=0;btn.classList.add("wrong");sfx.no();
+    $("quiz").classList.remove("shake");void $("quiz").offsetWidth;$("quiz").classList.add("shake");
+    recordWrong(q);
+    $("fb").innerHTML=`<div class="fb no"><strong>正確答案：${esc(q.a)}</strong>${detailHTML(q)}<p class="sub">${q.review?`清除進度歸零，要再連續答對 ${CLEAR_NEED} 次。`:"已加入錯題本。"}</p></div>`;
+  }
+  drawCells();$("combo").textContent=combo>=2?`🔥 COMBO x${combo}`:"";
+  if(q.k==="v")say(q.say);
+  const last=qmode!=="review"&&idx===round.length-1;
+  $("next").textContent=last?"看結果 ▶":"下一題 ▶";
+  $("next").hidden=false;$("next").focus({preventScroll:true});
+}
+$("next").onclick=()=>{
+  if(qmode==="vocab"){if(idx<round.length-1){idx++;render()}else vocabResult();return}
+  if(qmode==="grammar"){if(idx<round.length-1){idx++;render()}else grammarResult();return}
+  const n=nextReview();
+  if(!n){reviewDone();return}
+  round.push(n);idx=round.length-1;render();
+};
+
+function vocabResult(){
+  const L=lesson(),full=score===round.length;
+  if(full){const all=store.get("learned",{});all[L.id]=[...new Set([...(all[L.id]||[]),...batch.map(w=>w[0])])];store.set("learned",all);giveStar(`${L.no} 背單字`)}
+  $("resTitle").textContent=full?"全部背起來了！":"差一點！";
+  $("resBig").textContent=full?"⭐ +1":`${score} / ${round.length}`;
+  $("resMsg").textContent=full?`已背 ${learned(L.id).length} / ${L.vocab.length} 個。`:`要 ${round.length} 題全對才拿得到星星。錯的字已加入錯題本，再背一次這 ${round.length} 個吧。`;
+  setBtns(full?[["再背 5 個 ▶","go",()=>startVocab(false)],["回首頁","go alt",goHome]]:[["重背這 5 個 ▶","go",()=>startVocab(true)],["回首頁","go alt",goHome]]);
+  show("result");
+}
+function grammarResult(){
+  const n=round.length,pct=Math.round(score/n*100);
+  $("resTitle").textContent=pct>=90?"文法高手！":pct>=60?"做得不錯！":"再接再厲！";
+  $("resBig").textContent=`${score} / ${n}`;
+  const wrong=n-score;
+  $("resMsg").textContent=`答對率 ${pct}%。${wrong?`錯的 ${wrong} 題已加入錯題本。`:"全部答對！"}目前文法能量 ${store.get("energy",0)} / ${GRAMMAR_NEED} 格。`;
+  setBtns([["再做一次 ▶","go",openPick],["回首頁","go alt",goHome]]);
+  show("result");
+}
+function reviewDone(){
+  $("resTitle").textContent="錯題全部清空！";$("resBig").textContent="📕 0";
+  $("resMsg").textContent="太厲害了，錯題本已經清乾淨。";setBtns([["回首頁","go",goHome]]);show("result");
+}
+function setBtns(list){$("resBtns").innerHTML="";list.forEach(([t,c,f])=>{const b=document.createElement("button");b.className=c;b.textContent=t;b.onclick=f;$("resBtns").appendChild(b)})}
+
+$("goVocab").onclick=()=>{if(getWrong().length<LOCK_AT)startVocab(false)};
+$("goGrammar").onclick=()=>{if(getWrong().length<LOCK_AT)openPick()};
+$("goReview").onclick=()=>{round=[];const q=nextReview();if(q)startQuiz("review",[q])};
+
+/* ================= 兌換 / 計時 ================= */
+let tick=null,endAt=0;
+function code(ts,min){let h=(ts/60000|0)*31+min*7919;h=(h^(h>>>7))%10000;return String(Math.abs(h)).padStart(4,"0")}
+function fmt(ms){const s=Math.max(0,Math.ceil(ms/1000));return `${s/60|0}:${String(s%60).padStart(2,"0")}`}
+function runClock(){
+  clearInterval(tick);show("clock");$("clockCode").textContent=store.get("lastCode","----");$("clockMsg").textContent="時間到後要再集星星喔！";
+  let warned=endAt-Date.now()<=60000;
+  const step=()=>{const left=endAt-Date.now();$("timer").textContent=fmt(left);$("timer").classList.toggle("low",left<60000);
+    if(!warned&&left<=60000&&left>0){warned=true;$("clockMsg").textContent="⚠️ 剩下 1 分鐘！準備收手機。";
+      tone([[988,.15],[988,.15],[988,.3]]);try{navigator.vibrate&&navigator.vibrate([200,100,200])}catch(e){}}
+    if(left<=0){clearInterval(tick);store.set("endAt",0);$("clockMsg").textContent="時間到！放下手機，或再去集星星。";
+      tone([[880,.2],[660,.2],[880,.2],[660,.3]]);try{navigator.vibrate&&navigator.vibrate([300,200,300])}catch(e){}
+      setTimeout(goHome,3000)}};
+  step();tick=setInterval(step,500);
+}
+/* ---- 兌換：選星星數 → 家長輸入密碼 → 扣星星並計時 ---- */
+const hashPin=p=>{let h=7;for(const c of "amc"+p)h=(h*31+c.charCodeAt(0))%1000003;return "h"+h};
+const hasPin=()=>!!store.get("pinH",null);
+let rdN=1,rdFails=0;
+function drawRedeem(){
+  const s=store.get("stars",0);rdN=Math.max(1,Math.min(rdN,s));
+  $("rdHave").textContent=s;$("rdN").textContent=rdN;$("rdMin").textContent=`${rdN*MIN_PER_STAR} 分鐘`;
+  document.querySelectorAll(".perStarTxt").forEach(e=>e.textContent=MIN_PER_STAR);
+  $("rdMinus").disabled=rdN<=1;$("rdPlus").disabled=rdN>=s;
+  $("rdQuick").innerHTML="";
+  [1,2,3].filter(n=>n<=s).concat(s>3?[s]:[]).forEach(n=>{const b=document.createElement("button");b.textContent=n===s&&n>1?`全部 ${n} 顆`:`${n} 顆＝${n*MIN_PER_STAR} 分`;b.onclick=()=>{rdN=n;sfx.tap();drawRedeem()};$("rdQuick").appendChild(b)});
+}
+$("redeem").onclick=()=>{if(store.get("stars",0)<1)return;rdN=1;$("rdStep1").hidden=false;$("rdStep2").hidden=true;drawRedeem();show("redeemScr")};
+$("rdMinus").onclick=()=>{rdN--;sfx.tap();drawRedeem()};
+$("rdPlus").onclick=()=>{rdN++;sfx.tap();drawRedeem()};
+$("rdAsk").onclick=()=>{
+  $("rdStep1").hidden=true;$("rdStep2").hidden=false;$("rdErr").textContent="";$("rdPin").value="";$("rdPin2").value="";
+  const first=!hasPin();
+  $("rdPin2").hidden=!first;
+  $("rdPinTitle").textContent=first?"家長第一次使用：設定密碼":"請家長輸入密碼";
+  $("rdPinInfo").textContent=first?"請家長設定 4 位數密碼（之後每次兌換都要輸入，不要讓孩子看到）。":`孩子要用 ${rdN} 顆星換 ${rdN*MIN_PER_STAR} 分鐘手機時間。家長同意請輸入密碼。`;
+  setTimeout(()=>$("rdPin").focus(),50);
+};
+$("rdBack").onclick=()=>{$("rdStep1").hidden=false;$("rdStep2").hidden=true};
+$("rdOk").onclick=()=>{
+  const p=$("rdPin").value.trim();
+  if(!/^\d{4}$/.test(p)){$("rdErr").textContent="請輸入 4 位數字";return}
+  if(!hasPin()){
+    if($("rdPin2").value.trim()!==p){$("rdErr").textContent="兩次輸入的密碼不一樣";return}
+    store.set("pinH",hashPin(p));addLog("設定家長密碼","");
+  }else if(store.get("pinH")!==hashPin(p)){
+    rdFails++;$("rdPin").value="";$("rdErr").textContent=`密碼錯誤${rdFails>=3?"，請找家長來輸入":""}`;sfx.no();return;
+  }
+  rdFails=0;
+  const s=store.get("stars",0),n=Math.min(rdN,s);if(n<1){goHome();return}
+  store.set("stars",s-n);
+  const mins=n*MIN_PER_STAR,ts=Date.now(),c=code(ts,mins);store.set("lastCode",c);
+  const t=store.get("today",{d:"",m:0});store.set("today",{d:todayKey(),m:(t.d===todayKey()?t.m:0)+mins});
+  addLog("家長確認兌換","-"+n,mins,c);
+  endAt=Date.now()+mins*60000;store.set("endAt",endAt);runClock();
+};
+/* 家長設定 */
+function drawPset(){$("psInfo").textContent=hasPin()?"已設定家長密碼。可在這裡變更。":"還沒設定家長密碼。孩子第一次兌換時會請家長設定。";$("psOld").hidden=!hasPin();$("psSave").textContent=hasPin()?"變更密碼":"設定密碼"}
+$("psSave").onclick=()=>{
+  const o=$("psOld").value.trim(),n=$("psNew").value.trim();
+  if(hasPin()&&store.get("pinH")!==hashPin(o)){$("psMsg").textContent="舊密碼不對";return}
+  if(!/^\d{4}$/.test(n)){$("psMsg").textContent="新密碼要 4 位數字";return}
+  store.set("pinH",hashPin(n));$("psOld").value="";$("psNew").value="";$("psMsg").textContent="✓ 密碼已更新";addLog("變更家長密碼","");drawPset();
+};
+$("psReset").onclick=()=>{$("psConfirm").hidden=false};
+$("psNo").onclick=()=>{$("psConfirm").hidden=true};
+$("psYes").onclick=()=>{try{localStorage.removeItem("pinH")}catch(e){}store.set("stars",0);addLog("重設密碼（星星歸零）","");$("psConfirm").hidden=true;$("psMsg").textContent="已重設，星星歸零。";drawPset();drawWallet()};
+$("stop").onclick=()=>{clearInterval(tick);store.set("endAt",0);goHome()};
+
+function drawLog(){
+  const log=store.get("log3",[]);const p=n=>String(n).padStart(2,"0");
+  $("logBody").innerHTML=log.length?log.map(r=>{const d=new Date(r.ts);
+    return `<tr><td>${d.getMonth()+1}/${d.getDate()} ${p(d.getHours())}:${p(d.getMinutes())}</td><td>${r.ev}</td><td>${r.st}</td><td>${r.m||""}</td><td>${r.c}</td></tr>`}).join("")
+    :`<tr><td colspan="5">拿到第一顆星星後，紀錄會出現在這裡。</td></tr>`;
+}
+
+/* ================= 啟動 ================= */
+drawHud();drawHome();drawLog();drawPset();show("home");
+(function(){const e=store.get("endAt",0);if(e>Date.now()){endAt=e;runClock()}})();
+</script>
+
+</html>
