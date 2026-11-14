@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>充電大作戰 · 老師家長頁</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Russo+One&family=Noto+Sans+TC:wght@500;700;900&display=swap">
+<style>
+/* 老師／家長看同一個畫面：今日摘要 → 7 天長條圖 → 每筆紀錄 */
+:root{
+  --bg:#eaf3ff; --grid:#d6e6fb; --panel:#fff; --panel2:#f2f7ff; --line:#c9daf3;
+  --ink:#122047; --muted:#5a6a91; --blue:#1f6bff; --volt:#ffc41f; --volt-dk:#d99a00; --hot:#ff6a2b;
+  --ok:#12a85a; --bad:#e2344c;
+  --display:"Russo One","Noto Sans TC",system-ui,sans-serif;
+  --body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.55;
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:36px 36px;
+  padding:max(16px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) 40px max(16px,env(safe-area-inset-left))}
+.wrap{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+h1{font-family:var(--display);font-weight:400;color:var(--blue);text-shadow:3px 3px 0 var(--volt);margin:0;font-size:1.6rem}
+.sub{color:var(--muted);font-weight:700;font-size:.85rem;margin:4px 0 0}
+.panel{background:var(--panel);border:2px solid var(--line);border-radius:18px;padding:16px;box-shadow:0 5px 0 var(--line)}
+.label{font-size:.75rem;letter-spacing:.14em;color:var(--muted);font-weight:900;margin:0 0 10px}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.tile{background:var(--panel2);border-radius:14px;padding:12px}
+.tile b{display:block;font-family:var(--display);font-weight:400;font-size:1.6rem;line-height:1.1;font-variant-numeric:tabular-nums}
+.tile span{font-size:.78rem;color:var(--muted);font-weight:700}
+.tile.study b{color:var(--blue)} .tile.phone b{color:var(--hot)} .tile.star b{color:var(--volt-dk)}
+.status{border-radius:12px;padding:10px 12px;font-weight:700;background:var(--panel2)}
+.status.live{background:#fff1e8;color:var(--hot);border:2px solid var(--hot)}
+.chart{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;align-items:end;height:170px;padding-top:10px}
+.day{display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end;min-width:0}
+.bars{display:flex;gap:3px;align-items:flex-end;height:120px}
+.bars i{width:14px;border-radius:5px 5px 0 0;min-height:2px}
+.bars .s{background:var(--blue)} .bars .p{background:var(--hot)}
+.day small{font-size:.72rem;color:var(--muted);font-weight:700;white-space:nowrap}
+.day em{font-style:normal;font-size:.68rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.legend{display:flex;gap:14px;font-size:.8rem;font-weight:700;color:var(--muted);margin-top:8px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:middle}
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.88rem;font-variant-numeric:tabular-nums}
+th,td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+th{color:var(--muted);font-weight:700;font-size:.78rem}
+.pill{display:inline-block;border-radius:999px;padding:1px 9px;font-size:.75rem;font-weight:900}
+.pill.study{background:#e3edff;color:var(--blue)} .pill.phone{background:#fff1e8;color:var(--hot)} .pill.end{background:#eef1f6;color:var(--muted)}
+.good{color:var(--ok);font-weight:700} .low{color:var(--bad);font-weight:700}
+.gate{max-width:360px;margin:60px auto;text-align:center}
+.gate input{font-family:var(--display);font-size:1.8rem;letter-spacing:.4em;text-align:center;width:100%;padding:10px;border:3px solid var(--line);border-radius:14px;margin:12px 0}
+.btn{font-family:var(--body);font-weight:900;font-size:1.05rem;border:0;border-radius:14px;padding:12px 18px;background:var(--blue);color:#fff;box-shadow:0 5px 0 #1449b8;cursor:pointer;width:100%}
+.err{color:var(--bad);font-weight:700;min-height:1.4em}
+.empty{color:var(--muted);text-align:center;padding:20px}
+@media (max-width:520px){.tiles{grid-template-columns:repeat(2,1fr)}.bars i{width:10px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="panel gate" id="gate">
+    <h1>老師／家長頁</h1>
+    <p class="sub">請輸入查看密碼</p>
+    <input id="code" type="password" inputmode="numeric" maxlength="8" autocomplete="off" aria-label="查看密碼">
+    <p class="err" id="gerr"></p>
+    <button class="btn" id="enter">進入</button>
+  </div>
+
+  <div id="app" hidden>
+    <header style="margin-bottom:14px">
+      <h1>充電大作戰 · 學習紀錄</h1>
+      <p class="sub" id="seen">讀取中…</p>
+    </header>
+
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <section class="panel">
+        <p class="label">今天</p>
+        <div class="status" id="status">—</div>
+        <div class="tiles" style="margin-top:10px">
+          <div class="tile study"><b id="tStudy">0 分</b><span>作答時間</span></div>
+          <div class="tile study"><b id="tQ">0 題</b><span id="tAcc">答對率 —</span></div>
+          <div class="tile phone"><b id="tPhone">0 分</b><span>手機使用時間（家長核准）</span></div>
+          <div class="tile star"><b id="tStars">0</b><span>目前星星</span></div>
+          <div class="tile"><b id="tWrong">0</b><span>錯題本題數</span></div>
+          <div class="tile"><b id="tLearn">0</b><span>已背單字</span></div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <p class="label">最近 7 天（分鐘）</p>
+        <div class="chart" id="chart"></div>
+        <div class="legend"><span><i style="background:var(--blue)"></i>作答時間</span><span><i style="background:var(--hot)"></i>手機時間</span></div>
+      </section>
+
+      <section class="panel">
+        <p class="label">每筆紀錄</p>
+        <div class="tbl-wrap"><table><thead><tr><th>時間</th><th>項目</th><th>課</th><th>時間</th><th>結果</th></tr></thead><tbody id="rows"><tr><td colspan="5" class="empty">讀取中…</td></tr></tbody></table></div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===== 設定 ===== */
+const VIEW_CODE="2468";   // 老師／家長查看密碼（可自行修改）
+const KID_ID="kid1";      // 要和學生頁的 KID_ID 一樣
+const FIREBASE_CONFIG={
+  apiKey:"AIzaSyAWLvYbyhq4UBdBFLYDvFgqVjTkurIBXiU",
+  authDomain:"amc-spelling-star.firebaseapp.com",
+  projectId:"amc-spelling-star",
+  storageBucket:"amc-spelling-star.firebasestorage.app",
+  messagingSenderId:"93547096256",
+  appId:"1:93547096256:web:adef0633c4326beb30a525"
+};
+/* ================= */
+const $=id=>document.getElementById(id);
+const p2=n=>String(n).padStart(2,"0");
+const dayKey=d=>d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate();
+const KIND={vocab:"背單字",grammar:"文法闖關",review:"錯題複習"};
+const LESSON=id=>id?id.replace(/^b(\d)l(\d)$/,"B$1 · L$2"):"";
+function fmtMin(sec){const m=Math.round(sec/60);return m<60?`${m} 分`:`${Math.floor(m/60)} 小時 ${m%60} 分`}
+function ago(ts){const s=(Date.now()-ts)/1000;if(s<90)return"剛剛";if(s<3600)return`${Math.round(s/60)} 分鐘前`;if(s<86400)return`${Math.round(s/3600)} 小時前`;return`${Math.round(s/86400)} 天前`}
+
+function tryEnter(){
+  if($("code").value.trim()!==VIEW_CODE){$("gerr").textContent="密碼不對";return}
+  try{sessionStorage.setItem("chargeView","1")}catch(e){}
+  $("gate").hidden=true;$("app").hidden=false;start();
+}
+$("enter").onclick=tryEnter;$("code").addEventListener("keydown",e=>{if(e.key==="Enter")tryEnter()});
+try{if(sessionStorage.getItem("chargeView")==="1"){$("gate").hidden=true;$("app").hidden=false;start()}}catch(e){}
+
+function loadJS(src){return new Promise((ok,no)=>{const s=document.createElement("script");s.src=src;s.onload=ok;s.onerror=no;document.head.appendChild(s)})}
+let summary={},events=[];
+async function start(){
+  try{
+    const base="https://www.gstatic.com/firebasejs/10.12.2/";
+    await loadJS(base+"firebase-app-compat.js");await loadJS(base+"firebase-firestore-compat.js");
+    if(!firebase.apps.length)firebase.initializeApp(FIREBASE_CONFIG);
+    const ref=firebase.firestore().collection("charge").doc(KID_ID);
+    const timer=setTimeout(()=>{if(!events.length)$("seen").textContent="還沒有資料。孩子開始使用後，這裡會自動更新。"},10000);
+    ref.onSnapshot(d=>{summary=d.data()||{};render()},err=>fail(err));
+    ref.collection("events").orderBy("ts","desc").limit(400).onSnapshot(s=>{clearTimeout(timer);events=s.docs.map(x=>x.data());render()},err=>fail(err));
+    setInterval(render,30000);
+  }catch(e){fail(e)}
+}
+function fail(e){$("seen").textContent="讀不到雲端資料："+(e&&e.code==="permission-denied"?"雲端權限還沒開放（請看設定說明）":"請檢查網路後重新整理");}
+
+function render(){
+  const today=dayKey(new Date());
+  $("seen").textContent=summary.lastSeen?`最後上線：${ago(summary.lastSeen)}`:"還沒有上線紀錄";
+  if(summary.endAt&&summary.endAt>Date.now()){$("status").className="status live";$("status").textContent=`📱 正在使用手機，還剩 ${Math.ceil((summary.endAt-Date.now())/60000)} 分鐘`}
+  else{$("status").className="status";$("status").textContent="目前沒有在使用兌換的手機時間"}
+  // 今天
+  const st=events.filter(e=>e.type==="study"&&e.day===today);
+  const sec=st.reduce((a,e)=>a+(e.active||0),0),n=st.reduce((a,e)=>a+(e.n||0),0),c=st.reduce((a,e)=>a+(e.correct||0),0);
+  const ph=events.filter(e=>e.type==="redeem"&&e.day===today).reduce((a,e)=>a+(e.minutes||0),0);
+  $("tStudy").textContent=fmtMin(sec);$("tQ").textContent=`${n} 題`;$("tAcc").textContent=n?`答對率 ${Math.round(c/n*100)}%`:"答對率 —";
+  $("tPhone").textContent=`${ph} 分`;$("tStars").textContent=summary.stars??0;$("tWrong").textContent=summary.wrong??0;$("tLearn").textContent=summary.learned??0;
+  // 7 天
+  const days=[];for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);days.push(d)}
+  const data=days.map(d=>{const k=dayKey(d);return{d,s:Math.round(events.filter(e=>e.type==="study"&&e.day===k).reduce((a,e)=>a+(e.active||0),0)/60),p:events.filter(e=>e.type==="redeem"&&e.day===k).reduce((a,e)=>a+(e.minutes||0),0)}});
+  const max=Math.max(10,...data.map(x=>Math.max(x.s,x.p)));const W="日一二三四五六";
+  $("chart").innerHTML=data.map(x=>`<div class="day"><em>${x.s}/${x.p}</em><div class="bars"><i class="s" style="height:${x.s/max*100}%"></i><i class="p" style="height:${x.p/max*100}%"></i></div><small>${x.d.getMonth()+1}/${x.d.getDate()}(${W[x.d.getDay()]})</small></div>`).join("");
+  // 紀錄
+  if(!events.length){$("rows").innerHTML=`<tr><td colspan="5" class="empty">還沒有紀錄</td></tr>`;return}
+  $("rows").innerHTML=events.slice(0,120).map(e=>{
+    const d=new Date(e.ts),tm=`${d.getMonth()+1}/${d.getDate()} ${p2(d.getHours())}:${p2(d.getMinutes())}`;
+    if(e.type==="study"){const acc=e.n?Math.round(e.correct/e.n*100):0;
+      return `<tr><td>${tm}</td><td><span class="pill study">${KIND[e.kind]||e.kind}</span>${e.done?"":" <small>(中途離開)</small>"}</td><td>${LESSON(e.lesson)}</td><td>${fmtMin(e.active||0)}</td><td class="${acc>=80?"good":acc<60?"low":""}">${e.n?`${e.correct}/${e.n} 題 (${acc}%)`:"—"}${e.stars?` ⭐+${e.stars}`:""}</td></tr>`}
+    if(e.type==="redeem")return `<tr><td>${tm}</td><td><span class="pill phone">家長核准兌換</span></td><td></td><td>${e.minutes} 分</td><td>用 ⭐${e.stars}</td></tr>`;
+    if(e.type==="phoneEnd")return `<tr><td>${tm}</td><td><span class="pill end">手機時間結束</span></td><td></td><td>實際 ${e.used} 分</td><td>${e.early?"提早結束":"時間到"}</td></tr>`;
+    return "";
+  }).join("");
+}
+</script>
+</body>
+</html>

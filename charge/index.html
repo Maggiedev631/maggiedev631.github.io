@@ -212,6 +212,8 @@ details+details{margin-top:12px}
 .points{background:var(--panel2);border:2px solid var(--line);border-radius:14px;padding:12px 14px;text-align:left}
 .points h3{margin:0 0 6px;font-size:1rem}
 .points ul{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:4px;font-size:.92rem}
+.sync{margin:0;font-size:.82rem;font-weight:700;color:var(--muted)}
+.sync.ok{color:var(--ok)} .sync.bad{color:var(--bad)}
 .quitbar{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .small-btn{background:var(--panel);border:2px solid var(--line);border-radius:999px;padding:6px 14px;font-weight:700;cursor:pointer;font-size:.85rem}
 @media (max-width:400px){.wallet{flex-wrap:wrap}.wallet .go{flex:1 1 100%}}
@@ -370,6 +372,7 @@ details+details{margin-top:12px}
   </section>
 
   <section class="panel" id="parent">
+    <p class="sync" id="syncState">☁️ 連線中…</p>
     <details>
       <summary>家長紀錄</summary>
       <p class="hint" style="margin-top:8px">每次兌換都要家長輸入密碼，並記錄在下表。紀錄只存在這台裝置的瀏覽器。</p>
@@ -1559,6 +1562,60 @@ function fullSentence(q){ // 把答案填回題目
   const parts=n>1&&q.a.includes("; ")?q.a.split("; "):Array(n).fill(q.a);
   let i=0;return esc(txt).replace(/___/g,()=>{let p=(parts[i++]||"").replace(/（.*?）/g,"").trim();if(p==="X")p="";return p?`<mark>${esc(p)}</mark>`:""}).replace(/ {2,}/g," ").replace(/\s+([,.?!])/g,"$1").replace("\u0001","<br>");
 }
+
+/* ================= 雲端同步（老師／家長看得到作答與使用時間） ================= */
+const FIREBASE_CONFIG={
+  apiKey:"AIzaSyAWLvYbyhq4UBdBFLYDvFgqVjTkurIBXiU",
+  authDomain:"amc-spelling-star.firebaseapp.com",
+  projectId:"amc-spelling-star",
+  storageBucket:"amc-spelling-star.firebasestorage.app",
+  messagingSenderId:"93547096256",
+  appId:"1:93547096256:web:adef0633c4326beb30a525"
+};
+const KID_ID="kid1";          // 學生代號（同一個代號的紀錄會出現在老師／家長頁）
+let fdb=null,syncOK=null;
+function loadJS(src){return new Promise((ok,no)=>{const s=document.createElement("script");s.src=src;s.onload=ok;s.onerror=no;document.head.appendChild(s)})}
+async function initSync(){
+  try{
+    const v="10.12.2",base=`https://www.gstatic.com/firebasejs/${v}/`;
+    await loadJS(base+"firebase-app-compat.js");await loadJS(base+"firebase-firestore-compat.js");
+    if(!firebase.apps.length)firebase.initializeApp(FIREBASE_CONFIG);
+    fdb=firebase.firestore();flushEvents();pushSummary();
+  }catch(e){syncOK=false;drawSync()}
+}
+function drawSync(){const el=$("syncState");if(!el)return;el.textContent=syncOK===true?"☁️ 已同步到老師／家長頁":syncOK===false?"⚠️ 尚未同步（沒網路或雲端未開放）":"☁️ 連線中…";el.className="sync "+(syncOK===true?"ok":syncOK===false?"bad":"")}
+function logEvent(ev){
+  const q=store.get("evQueue",[]);q.push({...ev,ts:ev.ts||Date.now(),day:todayKey()});store.set("evQueue",q.slice(-300));flushEvents();
+}
+let flushing=false;
+async function flushEvents(){
+  if(!fdb||flushing)return;flushing=true;
+  try{
+    let q=store.get("evQueue",[]);
+    while(q.length){await fdb.collection("charge").doc(KID_ID).collection("events").add(q[0]);q.shift();store.set("evQueue",q)}
+    syncOK=true;
+  }catch(e){syncOK=false}
+  flushing=false;drawSync();pushSummary();
+}
+let sumTimer=null;
+function pushSummary(){
+  if(!fdb)return;clearTimeout(sumTimer);
+  sumTimer=setTimeout(async()=>{try{
+    const lr=store.get("learned",{});const t=store.get("today",{d:"",m:0});
+    await fdb.collection("charge").doc(KID_ID).set({stars:store.get("stars",0),energy:store.get("energy",0),xp:store.get("xp",0),
+      wrong:getWrong().length,learned:Object.values(lr).reduce((a,b)=>a+b.length,0),lesson:lessonId,
+      todayPhone:t.d===todayKey()?t.m:0,endAt:store.get("endAt",0),lastSeen:Date.now()},{merge:true});syncOK=true}catch(e){syncOK=false}drawSync()},800);
+}
+/* 作答時間：只算真的在作答的時間（每題最多算 3 分鐘，發呆不算） */
+let cur=null;
+function sessionStart(kind){cur={kind,lesson:lessonId,start:Date.now(),last:Date.now(),active:0,n:0,c:0,stars:0}}
+function tickActive(){if(!cur)return;const now=Date.now();cur.active+=Math.min(now-cur.last,180000);cur.last=now}
+function sessionEnd(done){
+  if(!cur)return;tickActive();
+  if(cur.n>0||cur.kind==="vocab"&&cur.active>15000)
+    logEvent({type:"study",kind:cur.kind,lesson:cur.lesson,start:cur.start,end:Date.now(),active:Math.round(cur.active/1000),n:cur.n,correct:cur.c,stars:cur.stars,done:!!done});
+  cur=null;
+}
 /* ================= 共用 ================= */
 const RANKS=[["青銅",0],["白銀",100],["黃金",300],["白金",600],["鑽石",1000],["大師",1600],["傳說",2500]];
 const $=id=>document.getElementById(id);
@@ -1627,7 +1684,7 @@ function loop(){const d=devicePixelRatio;cx.clearRect(0,0,cv.width,cv.height);pa
 /* ================= 星星 / 紀錄 ================= */
 function addLog(ev,st,m,c){const log=store.get("log3",[]);log.unshift({ts:Date.now(),ev,st,m:m||0,c:c||""});store.set("log3",log.slice(0,80));drawLog()}
 function giveStar(reason){
-  store.set("stars",store.get("stars",0)+1);addXp(30);addLog(reason,"+1");
+  store.set("stars",store.get("stars",0)+1);if(cur)cur.stars++;addXp(30);addLog(reason,"+1");
   sfx.star();burst(innerWidth/2,innerHeight*.35,70);
   const p=document.createElement("div");p.className="starpop";p.textContent="⭐ +1";document.body.appendChild(p);setTimeout(()=>p.remove(),1700);
   drawWallet();
@@ -1689,7 +1746,7 @@ function drawBook(){
 }
 const SCREENS=["home","book","pick","study","quiz","result","redeemScr","clock"];
 function show(id){SCREENS.forEach(s=>$(s).hidden=!(s===id||(id==="home"&&s==="book")));$("wallet").hidden=!(id==="home"||id==="result");scrollTo({top:0,behavior:"smooth"})}
-function goHome(){speechSynthesis&&speechSynthesis.cancel&&speechSynthesis.cancel();drawHome();show("home")}
+function goHome(){sessionEnd(false);pushSummary();speechSynthesis&&speechSynthesis.cancel&&speechSynthesis.cancel();drawHome();show("home")}
 document.querySelectorAll("[data-quit]").forEach(b=>b.onclick=goHome);
 
 /* ================= 出題 ================= */
@@ -1709,6 +1766,7 @@ function grammarQ(x,lid){return{...x,k:"g",lid,t:x.t||"文法",say:!/___/.test(x
 /* ================= 背單字 ================= */
 let batch=[],si=0;
 function startVocab(sameBatch){
+  sessionEnd(false);sessionStart("vocab");
   const L=lesson();
   if(!sameBatch){
     const done=learned(L.id);let fresh=L.vocab.filter(w=>!done.includes(w[0]));
@@ -1729,11 +1787,12 @@ function drawStudy(){
 }
 $("sSpeak").onclick=()=>say(batch[si][0]);
 $("sPrev").onclick=()=>{if(si>0){si--;drawStudy()}};
-$("sNext").onclick=()=>{if(si<batch.length-1){si++;drawStudy()}else startQuiz("vocab",shuffle(batch).map(w=>vocabQ(lesson(),w,lesson().vocab)))};
+$("sNext").onclick=()=>{tickActive();if(si<batch.length-1){si++;drawStudy()}else startQuiz("vocab",shuffle(batch).map(w=>vocabQ(lesson(),w,lesson().vocab)))};
 
 /* ================= 答題（三種模式共用） ================= */
 let qmode="",round=[],idx=0,score=0,answered=false,combo=0;
 function startQuiz(m,qs){
+  if(!(m==="vocab"&&cur&&cur.kind==="vocab")){sessionEnd(false);sessionStart(m)}
   qmode=m;round=qs;idx=0;score=0;combo=0;
   $("quizTag").textContent={vocab:"單字測驗",grammar:"文法闖關",review:"錯題複習"}[m];
   $("quizTag").style.background=m==="review"?"var(--hot)":"var(--blue)";
@@ -1804,6 +1863,7 @@ function detailHTML(q){
 function pick(btn,o){
   if(answered)return;answered=true;
   const q=round[idx],ok=o===q.a;
+  if(cur){tickActive();cur.n++;if(ok)cur.c++}
   [...$("opts").children].forEach(b=>{b.disabled=true;if(b.textContent===q.a)b.classList.add("right")});
   let extra="";
   if(ok){
@@ -1844,7 +1904,7 @@ function vocabResult(){
   $("resBig").textContent=full?"⭐ +1":`${score} / ${round.length}`;
   $("resMsg").textContent=full?`已背 ${learned(L.id).length} / ${L.vocab.length} 個。`:`要 ${round.length} 題全對才拿得到星星。錯的字已加入錯題本，再背一次這 ${round.length} 個吧。`;
   setBtns(full?[["再背 5 個 ▶","go",()=>startVocab(false)],["回首頁","go alt",goHome]]:[["重背這 5 個 ▶","go",()=>startVocab(true)],["回首頁","go alt",goHome]]);
-  show("result");
+  sessionEnd(true);show("result");
 }
 function grammarResult(){
   const n=round.length,pct=Math.round(score/n*100);
@@ -1853,9 +1913,9 @@ function grammarResult(){
   const wrong=n-score;
   $("resMsg").textContent=`答對率 ${pct}%。${wrong?`錯的 ${wrong} 題已加入錯題本。`:"全部答對！"}目前文法能量 ${store.get("energy",0)} / ${GRAMMAR_NEED} 格。`;
   setBtns([["再做一次 ▶","go",openPick],["回首頁","go alt",goHome]]);
-  show("result");
+  sessionEnd(true);show("result");
 }
-function reviewDone(){
+function reviewDone(){sessionEnd(true);
   $("resTitle").textContent="錯題全部清空！";$("resBig").textContent="📕 0";
   $("resMsg").textContent="太厲害了，錯題本已經清乾淨。";setBtns([["回首頁","go",goHome]]);show("result");
 }
@@ -1877,6 +1937,7 @@ function runClock(){
       tone([[988,.15],[988,.15],[988,.3]]);try{navigator.vibrate&&navigator.vibrate([200,100,200])}catch(e){}}
     if(left<=0){clearInterval(tick);store.set("endAt",0);$("clockMsg").textContent="時間到！放下手機，或再去集星星。";
       tone([[880,.2],[660,.2],[880,.2],[660,.3]]);try{navigator.vibrate&&navigator.vibrate([300,200,300])}catch(e){}
+      logEvent({type:"phoneEnd",used:Math.round((Date.now()-store.get("phoneStart",Date.now()))/60000),early:false});
       setTimeout(goHome,3000)}};
   step();tick=setInterval(step,500);
 }
@@ -1919,6 +1980,7 @@ $("rdOk").onclick=()=>{
   const mins=n*MIN_PER_STAR,ts=Date.now(),c=code(ts,mins);store.set("lastCode",c);
   const t=store.get("today",{d:"",m:0});store.set("today",{d:todayKey(),m:(t.d===todayKey()?t.m:0)+mins});
   addLog("家長確認兌換","-"+n,mins,c);
+  logEvent({type:"redeem",stars:n,minutes:mins,start:Date.now(),code:c});store.set("phoneStart",Date.now());
   endAt=Date.now()+mins*60000;store.set("endAt",endAt);runClock();
 };
 /* 家長設定 */
@@ -1932,7 +1994,8 @@ $("psSave").onclick=()=>{
 $("psReset").onclick=()=>{$("psConfirm").hidden=false};
 $("psNo").onclick=()=>{$("psConfirm").hidden=true};
 $("psYes").onclick=()=>{try{localStorage.removeItem("pinH")}catch(e){}store.set("stars",0);addLog("重設密碼（星星歸零）","");$("psConfirm").hidden=true;$("psMsg").textContent="已重設，星星歸零。";drawPset();drawWallet()};
-$("stop").onclick=()=>{clearInterval(tick);store.set("endAt",0);goHome()};
+$("stop").onclick=()=>{clearInterval(tick);store.set("endAt",0);
+  logEvent({type:"phoneEnd",used:Math.round((Date.now()-store.get("phoneStart",Date.now()))/60000),early:true});goHome()};
 
 function drawLog(){
   const log=store.get("log3",[]);const p=n=>String(n).padStart(2,"0");
@@ -1942,7 +2005,9 @@ function drawLog(){
 }
 
 /* ================= 啟動 ================= */
-drawHud();drawHome();drawLog();drawPset();show("home");
+drawHud();drawHome();drawLog();drawPset();show("home");drawSync();initSync();
+addEventListener("online",flushEvents);
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden"){pushSummary()}});
 (function(){const e=store.get("endAt",0);if(e>Date.now()){endAt=e;runClock()}})();
 </script>
 
