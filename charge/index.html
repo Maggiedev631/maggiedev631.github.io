@@ -6,7 +6,7 @@
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}</style>
 <title>充電大作戰</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Russo+One&family=Noto+Sans+TC:wght@500;700;900&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Barlow:wght@600;700&family=Russo+One&family=Noto+Sans+TC:wght@500;700;900&display=swap">
 <style>
 /* Layout: one game column — HUD on top, a phone battery that charges with each right answer.
    Bright sporty single light look: sky-white ground, electric blue, volt yellow, hot orange. */
@@ -187,7 +187,7 @@ details summary{cursor:pointer;font-weight:700;color:var(--muted)}
 .books{display:flex;gap:8px;flex-wrap:wrap}
 .book-tab{border:2px solid var(--line);background:var(--panel2);border-radius:999px;padding:6px 16px;font-weight:900;cursor:pointer}
 .book-tab[aria-pressed="true"]{background:var(--blue);border-color:var(--blue);color:#fff}
-.counts{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.counts{display:grid;grid-template-columns:1fr;gap:10px}
 .counts .go{font-size:1.6rem;padding:18px 8px}
 .counts .go small{display:block;font-family:var(--body);font-size:.75rem;font-weight:700;opacity:.85}
 .voice-note{background:var(--warn-soft);border:2px solid var(--volt-dk);border-radius:12px;padding:8px 12px;font-size:.85rem;font-weight:700}
@@ -217,6 +217,79 @@ details+details{margin-top:12px}
 .quitbar{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .small-btn{background:var(--panel);border:2px solid var(--line);border-radius:999px;padding:6px 14px;font-weight:700;cursor:pointer;font-size:.85rem}
 @media (max-width:400px){.wallet{flex-wrap:wrap}.wallet .go{flex:1 1 100%}}
+
+/* ====== 國中男生風：電競 HUD × 貼紙感（亮底、粗黑框、斜切按鈕） ====== */
+:root{
+  --bg:#e8ecf2; --grid:#dde3eb; --panel:#ffffff; --panel2:#f2f5f9; --line:#11172a;
+  --ink:#11172a; --muted:#56617c; --blue:#2350ff; --blue-dk:#11172a; --volt:#ffd60a; --volt-dk:#11172a; --hot:#ff5a1f;
+  --ok:#0fae5b; --ok-soft:#d9f7e6; --bad:#e8263f; --bad-soft:#ffe1e5; --warn-soft:#fff6c7;
+  --display:"Bungee","Noto Sans TC",system-ui,sans-serif;
+  --qfont:"Barlow","Noto Sans TC",system-ui,sans-serif;
+}
+body{background-color:var(--bg);background-image:repeating-linear-gradient(135deg,transparent 0 22px,rgba(17,23,42,.035) 22px 44px)}
+header{background:var(--ink);color:#fff;border-radius:6px;padding:14px 14px 12px;box-shadow:6px 6px 0 var(--blue)}
+.logo{color:var(--volt);text-shadow:3px 3px 0 var(--hot);font-size:1.55rem}
+.logo small{color:#aeb7cf;letter-spacing:.2em}
+.chip{background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.25);color:#fff}
+.chip.rank b{color:#5ee3ff} .chip.streak b{color:#ffb35c}
+.icon-btn{background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.25);color:#fff}
+.xp{background:rgba(255,255,255,.12);border:0;height:10px;border-radius:2px;transform:skewX(-20deg)}
+.xp i{background:repeating-linear-gradient(90deg,var(--volt) 0 14px,#ffe868 14px 18px)}
+.xp-label{color:#aeb7cf}
+.panel{border:3px solid var(--ink);border-radius:6px;box-shadow:6px 6px 0 var(--ink)}
+.label{display:inline-block;width:max-content;max-width:100%;background:var(--ink);color:#fff;padding:3px 12px;transform:skewX(-10deg);letter-spacing:.12em}
+.go{border:3px solid var(--ink);border-radius:4px;transform:skewX(-6deg);box-shadow:4px 4px 0 var(--ink);font-family:"Noto Sans TC",system-ui,sans-serif;font-weight:900;letter-spacing:.06em}
+.go:active:not(:disabled){transform:skewX(-6deg) translate(3px,3px);box-shadow:1px 1px 0 var(--ink)}
+.go.volt{background:var(--volt);color:var(--ink);box-shadow:4px 4px 0 var(--ink)}
+.go.hot{box-shadow:4px 4px 0 var(--ink)}
+.go.alt{box-shadow:4px 4px 0 var(--ink);border:3px solid var(--ink)}
+.lesson,.task,.mode{border:3px solid var(--ink);border-radius:4px;box-shadow:4px 4px 0 var(--ink);background:#fff;transition:transform .08s}
+.lesson:hover:not(:disabled),.task:hover:not(:disabled){transform:translate(-2px,-2px)}
+.lesson[aria-pressed="true"]{background:var(--volt);border-color:var(--ink);box-shadow:4px 4px 0 var(--blue)}
+.lesson[aria-pressed="true"] .no{color:var(--ink)}
+.lesson .no{font-family:var(--display);letter-spacing:.04em}
+.task{position:relative;overflow:hidden}
+.task::after{content:"";position:absolute;right:-18px;top:-18px;width:56px;height:56px;background:var(--hot);transform:rotate(45deg)}
+#goGrammar::after{background:var(--blue)}
+.task b{font-size:1.2rem;font-weight:900}
+.task .left{font-size:.78rem;font-weight:900;color:var(--ink);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.pips{display:inline-flex;gap:2px}
+.pips b{width:7px;height:12px;background:#d4dae5;transform:skewX(-15deg)}
+.pips b.on{background:var(--ok)}
+.wallet{border-color:var(--ink);background:var(--volt)}
+.wallet .stars,.wallet .info,.wallet .info b{color:var(--ink)}
+.wallet .stars span{color:var(--ink)}
+.wallet .go.volt{background:#fff}
+.book{border-color:var(--ink);background:#fff}
+.book-head h2{font-weight:900}
+.count{color:var(--hot)}
+.meter{background:#e6e9f0;border-radius:2px;transform:skewX(-20deg)}
+.qcard{border:3px solid var(--ink);border-radius:4px;background:#fff}
+.qtype{color:#fff;background:var(--blue);padding:2px 10px;transform:skewX(-10deg)}
+.prompt .en,.opt.en,.sent,.study .word{font-family:var(--qfont);font-weight:700;letter-spacing:0}
+.prompt .en{font-size:1.35rem}
+.opt{border:3px solid var(--ink);border-radius:4px;box-shadow:4px 4px 0 var(--ink);font-size:1.12rem}
+.opt:hover:not(:disabled){border-color:var(--ink);background:var(--warn-soft)}
+.opt.right{box-shadow:4px 4px 0 var(--ok);border-color:var(--ok)}
+.opt.wrong{box-shadow:4px 4px 0 var(--bad);border-color:var(--bad)}
+.fb{border-width:3px;border-radius:4px}
+.cells{border-color:var(--ink);border-radius:4px}
+.cells i.on{background:var(--volt)}
+.battery::after{background:var(--ink)}
+.review-tag{border-radius:2px;transform:skewX(-10deg)}
+.speak{border:3px solid var(--ink);color:var(--ink);background:#fff;border-radius:4px;box-shadow:3px 3px 0 var(--ink)}
+.study{border:3px solid var(--ink);border-radius:4px;background:#fff}
+.study .word{font-size:2.6rem;color:var(--blue)}
+.big{color:var(--ink);text-shadow:4px 4px 0 var(--volt)}
+.res-title{font-family:var(--display)}
+.stats div,.rules div,.tile{border:2px solid var(--ink);border-radius:4px}
+.small-btn{border:2px solid var(--ink);border-radius:4px}
+.pin{border:3px solid var(--ink);border-radius:4px}
+.points{border:2px dashed var(--ink);border-radius:4px}
+.starpop{border:3px solid var(--ink);box-shadow:6px 6px 0 var(--ink);border-radius:4px}
+.witem{border-color:var(--line);border-radius:4px}
+.lock{border-radius:4px;border-width:3px}
+@media (prefers-reduced-motion:reduce){.lesson:hover,.task:hover{transform:none}}
 </style>
 
 <canvas id="fx"></canvas>
@@ -252,11 +325,13 @@ details+details{margin-top:12px}
       <button class="task" id="goVocab">
         <span class="em">🔤</span><b>背單字</b>
         <span class="rule">背 5 個，測驗全對 = ⭐1</span>
+        <span class="left" id="vLeft"></span>
         <span class="prog" id="vocabProg">已背 0 / 0</span>
       </button>
       <button class="task" id="goGrammar">
         <span class="em">🧩</span><b>文法闖關</b>
-        <span class="rule">選 10／20／30 題，每答對 1 題充 1 格，滿 <span id="gNeed">5</span> 格 = ⭐1</span>
+        <span class="rule">每次 10 題，答對 1 題充 1 格，滿 <span id="gNeed">5</span> 格 = ⭐1</span>
+        <span class="left" id="gLeft"></span>
         <div class="meter2" id="gMeterHome"></div>
       </button>
     </div>
@@ -294,7 +369,7 @@ details+details{margin-top:12px}
   <!-- 文法：選題數 -->
   <section class="panel" id="pick" hidden>
     <div class="quitbar"><span class="label" id="pickLabel">文法闖關</span><button class="small-btn" data-quit>返回</button></div>
-    <p class="res-title" style="font-size:1.3rem">這次要做幾題？</p>
+    <p class="res-title" style="font-size:1.3rem">準備好了嗎？</p>
     <p class="center hint" id="pickInfo"></p>
     <div class="counts" id="counts"></div>
     <div class="points" id="pickPoints"></div>
@@ -402,7 +477,10 @@ const GRAMMAR_NEED=5;   // 文法答對幾題換 1 顆星
 const MIN_PER_STAR=5;   // 1 顆星換幾分鐘
 const CLEAR_NEED=2;     // 錯題要連續答對幾次才清除
 const LOCK_AT=10;       // 錯題達幾題時鎖住背單字和文法（只在開始新任務時檢查）
-const COUNT_OPTIONS=[10,20,30]; // 文法闖關可選的題數
+const ROUND_N=10;              // 文法每次 10 題
+const DAILY_VOCAB=10;          // 背單字一天最多幾次
+const DAILY_GRAMMAR=10;        // 文法闖關一天最多幾次
+const ENABLED=["b3l3","b3l4"]; // 目前開放的課（要開其他課，把代號加進來）
 
 /* ================= 題庫 =================
    新增一課：在 LESSONS 加一個物件
@@ -1551,6 +1629,108 @@ b3l6:["問路：How do I get to …? / Excuse me.","Walk straight / along the st
 };
 
 LESSONS.forEach(l=>l.grammar.forEach((g,i)=>{if(TR[l.id])g.zh=TR[l.id][i]}));
+LESSONS.splice(0,LESSONS.length,...LESSONS.filter(l=>ENABLED.includes(l.id)));
+
+/* ================= 文法題產生器：題庫做完後，自動出「新」的同型題 ================= */
+const rnd=a=>a[Math.random()*a.length|0];
+const cap=s=>s[0].toUpperCase()+s.slice(1);
+const SUBJ=[ // [英文, 中文, 單複數, 代名詞]
+ ["I","我","I","I"],["he","他","s","he"],["she","她","s","she"],["Tom","Tom","s","he"],["Amy","Amy","s","she"],
+ ["my brother","我哥哥","s","he"],["my mom","我媽媽","s","she"],["Mr. Lee","李老師","s","he"],["Grandpa","爺爺","s","he"],
+ ["we","我們","p","we"],["they","他們","p","they"],["Tom and Amy","Tom 和 Amy","p","they"],["my parents","我爸媽","p","they"],["the students","學生們","p","they"]
+];
+const beOf=s=>s[2]==="p"?"were":"was";
+/* 動作：[原形, V-ing, 過去式, 第三人稱, 受詞, 中文] */
+const ACTS=[
+ ["watch","watching","watched","watches","TV","看電視"],["do","doing","did","does","homework","寫功課"],
+ ["play","playing","played","plays","basketball","打籃球"],["read","reading","read","reads","a comic book","看漫畫"],
+ ["take","taking","took","takes","a bath","洗澡"],["cook","cooking","cooked","cooks","dinner","煮晚餐"],
+ ["clean","cleaning","cleaned","cleans","the room","打掃房間"],["surf","surfing","surfed","surfs","the Internet","上網"],
+ ["walk","walking","walked","walks","the dog","遛狗"],["play","playing","played","plays","video games","玩電玩"],
+ ["eat","eating","ate","eats","breakfast","吃早餐"],["listen","listening","listened","listens","to music","聽音樂"],
+ ["study","studying","studied","studies","English","讀英文"],["practice","practicing","practiced","practices","the piano","練鋼琴"],
+ ["make","making","made","makes","a cake","做蛋糕"],["write","writing","wrote","writes","a letter","寫信"],
+ ["swim","swimming","swam","swims","in the pool","在泳池游泳"],["draw","drawing","drew","draws","pictures","畫畫"]
+];
+const PAST_TIME=[["at eight last night","昨晚八點"],["at 7 a.m. yesterday","昨天早上七點"],["at this time yesterday","昨天這個時候"],
+ ["at ten last Sunday","上週日十點"],["at 4 p.m. yesterday","昨天下午四點"],["at nine last night","昨晚九點"],["at noon yesterday","昨天中午"]];
+const WHEN=[["Mom got home","媽媽回到家"],["the phone rang","電話響"],["the teacher came in","老師進來"],["it started to rain","開始下雨"],
+ ["Dad came back","爸爸回來"],["the bell rang","鐘響"],["I called","我打電話過去"]];
+const NUM=["","one","two","three","four","five","six","seven","eight","nine","ten","eleven","twelve"];
+const sent=(s)=>cap(s.replace(/\s+/g," ").replace(/\s+([.?!,])/g,"$1").trim());
+const actEn=(a,form)=>`${a[form]} ${a[4]}`.trim();
+
+function genL3(){
+  const k=Math.random()*8|0;
+  const s=rnd(SUBJ),a=rnd(ACTS),t=rnd(PAST_TIME),be=beOf(s);
+  if(k===0)return{q:sent(`${s[0]} ___ ${actEn(a,1)} ${t[0]}.`),a:be,o:["was","were","is","are"],
+    ex:`過去某個時間正在做 → was / were + V-ing；${s[0]} 用 ${be}。`,zh:`${s[1]}${t[1]}正在${a[5]}。`};
+  if(k===1){const o=[a[1],a[0],a[2],a[3]];if(new Set(o).size<4)return genL3();
+    return{q:sent(`${s[0]} ${be} ___ ${a[4]} ${t[0]}.`),a:a[1],o,ex:`was / were 後面接 V-ing：${a[1]}。`,zh:`${s[1]}${t[1]}正在${a[5]}。`}}
+  if(k===2){const qs=rnd([["you","were","你","I was"],["Tom","was","Tom","He was"],["Amy","was","Amy","She was"],["they","were","他們","They were"],["your parents","were","你爸媽","They were"]]);
+    return{q:`What ___ ${qs[0]} doing ${t[0]}?`,h:`${qs[3]} ${actEn(a,1)}.`,a:qs[1],o:["was","were","did","are"],
+      ex:`問「當時在做什麼」：What + was / were + 主詞 + doing？${qs[0]} 用 ${qs[1]}。`,zh:`${qs[2]}${t[1]}在做什麼？（答：正在${a[5]}。）`}}
+  if(k===3){const qs=rnd([["Tom","Was","No, he wasn't.",["No, he wasn't.","No, he didn't.","No, he isn't.","No, he weren't."]],["Amy","Was","No, she wasn't.",["No, she wasn't.","No, she didn't.","No, she isn't.","No, she weren't."]],
+      ["your brother","Was","Yes, he was.",["Yes, he was.","Yes, he did.","Yes, he is.","Yes, he were."]],["they","Were","Yes, they were.",["Yes, they were.","Yes, they did.","Yes, they are.","Yes, they was."]],
+      ["you","Were","No, I wasn't.",["No, I wasn't.","No, I didn't.","No, I'm not.","No, I weren't."]]]);
+    return{q:`${qs[1]} ${qs[0]} ${actEn(a,1)} ${t[0]}?`,a:qs[2],o:qs[3],ex:`${qs[1]} + 主詞 + V-ing？簡答也用 ${qs[1].toLowerCase()} / ${qs[1].toLowerCase()}n't。`,
+      zh:`${{Tom:"Tom",Amy:"Amy","your brother":"你哥哥",they:"他們",you:"你"}[qs[0]]}${t[1]}正在${a[5]}嗎？${qs[2].startsWith("Yes")?"是的。":"不，沒有。"}`}}
+  if(k===4){const w=rnd(WHEN);return{q:sent(`When ${w[0]}, ${s[0]} ___ ${actEn(a,1)}.`),a:be,o:["was","were","did","is"],
+    ex:`when + 過去式，主要句用過去進行式 was / were + V-ing；${s[0]} 用 ${be}。`,zh:`${w[1]}的時候，${s[1]}正在${a[5]}。`}}
+  if(k===5){ // 時間說法
+    const h=1+(Math.random()*11|0),m=rnd([10,15,20,30,40,45,50]);const nx=NUM[h%12+1],hn=NUM[h];
+    const map={10:`ten past ${hn}`,15:`a quarter past ${hn}`,20:`twenty past ${hn}`,30:`half past ${hn}`,40:`twenty to ${nx}`,45:`a quarter to ${nx}`,50:`ten to ${nx}`};
+    const wrong={10:[`ten to ${hn}`,`ten past ${nx}`,`a quarter past ${hn}`],15:[`a quarter to ${hn}`,`half past ${hn}`,`a quarter past ${nx}`],20:[`twenty to ${hn}`,`twenty past ${nx}`,`ten past ${hn}`],
+      30:[`half to ${hn}`,`a quarter past ${hn}`,`half past ${nx}`],40:[`twenty past ${hn}`,`twenty to ${hn}`,`a quarter to ${nx}`],45:[`a quarter past ${hn}`,`a quarter to ${hn}`,`half past ${hn}`],50:[`ten past ${hn}`,`ten to ${hn}`,`twenty to ${nx}`]};
+    const zhm={10:"十分",15:"十五分",20:"二十分",30:"半",40:"四十分",45:"四十五分",50:"五十分"}[m];
+    return{q:`It's ${h}:${String(m).padStart(2,"0")}. It's ___.`,a:map[m],o:[map[m],...wrong[m]],
+      ex:m<=30?`過了幾分用 past：${m===15?"a quarter = 15 分":m===30?"half = 30 分":m+" 分"} past ${hn}。`:`差幾分到下一個整點用 to：差 ${60-m} 分到 ${h%12+1} 點 → ${map[m]}。`,zh:`現在 ${h} 點${zhm}。`}}
+  if(k===6){ // before / after
+    const pr=rnd([["I finished my homework","I watched TV","我寫完功課","我看電視"],["she brushed her teeth","she went to bed","她刷牙","她上床睡覺"],
+      ["we bought tickets","we went into the museum","我們買票","我們進博物館"],["Tom put on his shoes","he went out","Tom 穿上鞋子","他出門"],
+      ["the crow dropped rocks into the jar","it drank the water","烏鴉把石頭丟進罐子","牠喝到水"],["I washed my hands","I ate dinner","我洗手","我吃晚餐"]]);
+    if(Math.random()<.5)return{q:sent(`${pr[0]} ___ ${pr[1]}.`),a:"before",o:["before","after","so","because"],ex:"先發生的事 + before + 後發生的事。",zh:`在${pr[3]}之前，${pr[2]}。`};
+    return{q:sent(`${pr[1]} ___ ${pr[0]}.`),a:"after",o:["after","before","so","because"],ex:"後發生的事 + after + 先發生的事。",zh:`在${pr[2]}之後，${pr[3]}。`}}
+  // k===7 否定
+  const a2=rnd(ACTS.filter(x=>x!==a));const neg=be==="was"?"wasn't":"weren't";
+  return{q:sent(`${s[0]} ___ ${actEn(a,1)} ${t[0]}. ${cap(s[3])} ${be} ${actEn(a2,1)}.`),a:neg,o:["wasn't","weren't","didn't",s[2]==="p"?"aren't":"isn't"],
+    ex:`過去進行式否定：${be} + not = ${neg}。`,zh:`${s[1]}${t[1]}不是在${a[5]}，而是在${a2[5]}。`};
+}
+
+/* L4：不定詞 to V / 動名詞 V-ing */
+const TO_V=[["wanted","想要"],["planned","打算"],["decided","決定"],["needed","需要"],["hoped","希望"]];
+const V_ING=[["enjoyed","喜歡"],["kept","一直"],["practiced","練習"],["finished","做完"]];
+const ACT4=[ // [原形, V-ing, 過去式, 第三人稱, 受詞, 中文, 可用 kept/practiced/finished]
+ ["play","playing","played","plays","basketball","打籃球","kpf"],["learn","learning","learned","learns","English","學英文","k"],
+ ["make","making","made","makes","videos","拍影片","kf"],["read","reading","read","reads","comic books","看漫畫","kf"],
+ ["sing","singing","sang","sings","English songs","唱英文歌","kpf"],["study","studying","studied","studies","math","讀數學","kf"],
+ ["cook","cooking","cooked","cooks","dinner","煮晚餐","kf"],["draw","drawing","drew","draws","pictures","畫畫","kpf"],
+ ["write","writing","wrote","writes","stories","寫故事","kpf"],["dance","dancing","danced","dances","","跳舞","kpf"],
+ ["take","taking","took","takes","photos","拍照","kf"],["swim","swimming","swam","swims","","游泳","kpf"]
+];
+const ADJ=[["fun","很有趣"],["important","很重要"],["good for you","對你很好"],["not easy","不容易"],["exciting","很刺激"]];
+const JOBS=[["a singer","歌手"],["a reporter","記者"],["a police officer","警察"],["a writer","作家"],["an actor","演員"],["a YouTuber","YouTuber"],["a cook","廚師"],["a doctor","醫生"]];
+const okIng=(v,a)=>v[0]==="enjoyed"||(v[0]==="kept"&&a[6].includes("k"))||(v[0]==="practiced"&&a[6].includes("p"))||(v[0]==="finished"&&a[6].includes("f"));
+function genL4(){
+  const k=Math.random()*7|0;const s=rnd(SUBJ),a=rnd(ACT4);
+  const four=(x)=>[`to ${x[0]}`,x[1],x[0],x[2]===x[0]?x[3]:x[2]];
+  if(k===0){const v=rnd(TO_V);return{q:sent(`${s[0]} ${v[0]} ___ ${a[4]}.`),a:`to ${a[0]}`,o:four(a),ex:`${v[0].replace(/e?d$/,"")} 後面接 to + 原形動詞（不定詞）。`,zh:`${s[1]}${v[1]}${a[5]}。`}}
+  if(k===1){const vs=V_ING.filter(v=>okIng(v,a));const v=rnd(vs);return{q:sent(`${s[0]} ${v[0]} ___ ${a[4]}.`),a:a[1],o:four(a),ex:`${v[0]==="kept"?"keep":v[0].replace(/ed$/,"")} 後面接 V-ing（動名詞）。`,zh:`${s[1]}${v[1]}${a[5]}。`}}
+  if(k===2){const ad=rnd(ADJ);return{q:sent(`___ ${a[4]} is ${ad[0]}.`),a:cap(a[1]),o:[cap(a[1]),cap(a[0]),cap(a[3]),a[2]===a[0]?"Being":cap(a[2])],
+    ex:"動名詞 V-ing 可以當主詞，動詞用單數 is。",zh:`${a[5]}${ad[1]}。`}}
+  if(k===3){const ad=rnd(ADJ);return{q:sent(`It is ${ad[0]} ___ ${a[4]}.`),a:`to ${a[0]}`,o:[`to ${a[0]}`,a[0],a[3],a[2]===a[0]?`to ${a[1]}`:a[2]],
+    ex:"It is + 形容詞 + to V：It 是虛主詞，真正的主詞是 to V。",zh:`${a[5]}${ad[1]}。`}}
+  if(k===4){const pre=rnd([["is good at","很擅長"],["is not good at","不擅長"]]);const ss=rnd(SUBJ.filter(x=>x[2]==="s"));
+    return{q:sent(`${ss[0]} ${pre[0]} ___ ${a[4]}.`),a:a[1],o:[a[1],`to ${a[0]}`,a[0],a[3]],ex:"介系詞（at, for, without）後面接 V-ing。",zh:`${ss[1]}${pre[1]}${a[5]}。`}}
+  if(k===5){ // 選動詞
+    if(Math.random()<.5){const v=rnd(TO_V);const d=pickN(V_ING,3).map(x=>x[0]);return{q:sent(`${s[0]} ___ to ${a[0]} ${a[4]}.`),a:v[0],o:[v[0],...d],ex:`後面是 to V → 選接不定詞的動詞 ${v[0]}；enjoy / keep / practice / finish 要接 V-ing。`,zh:`${s[1]}${v[1]}${a[5]}。`}}
+    const vs=V_ING.filter(v=>okIng(v,a));const v=rnd(vs);const d=pickN(TO_V,3).map(x=>x[0]);
+    return{q:sent(`${s[0]} ___ ${a[1]} ${a[4]}.`),a:v[0],o:[v[0],...d],ex:`後面是 V-ing → 選接動名詞的動詞 ${v[0]}；want / plan / decide / need / hope 要接 to V。`,zh:`${s[1]}${v[1]}${a[5]}。`}}
+  const j=rnd(JOBS);const who=rnd([["My dream is","我的夢想是當"],["Her dream is","她的夢想是當"],["Tom's dream is","Tom 的夢想是當"]]);
+  return{q:`${who[0]} ___ ${j[0]}.`,a:"to be",o:["to be","be","is","was"],ex:"My dream is + to V：用不定詞說明夢想是什麼。",zh:`${who[1]}${j[1]}。`};
+}
+const GEN={b3l3:genL3,b3l4:genL4};
+
 function zhOf(q){if(q.zh)return q.zh;const L=LESSONS.find(l=>l.id===q.lid);if(!L)return"";const g=L.grammar.find(x=>x.q===q.q&&x.a===q.a);return g?g.zh||"":""}
 function pointsHTML(lid){const p=POINTS[lid];if(!p)return"";return `<h3>📘 ${lessonOf(lid).no} 文法重點</h3><ul>${p.map(x=>`<li>${x}</li>`).join("")}</ul>`}
 const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");
@@ -1624,8 +1804,8 @@ const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random(
 const pickN=(a,n)=>shuffle(a).slice(0,n);
 const isEn=s=>/^[\x00-\x7F]+$/.test(s);
 const lessonOf=id=>LESSONS.find(l=>l.id===id)||LESSONS[0];
-let lessonId=store.get("lesson","b3l1");
-if(!LESSONS.some(l=>l.id===lessonId))lessonId="b3l1";
+let lessonId=store.get("lesson",ENABLED[0]);
+if(!LESSONS.some(l=>l.id===lessonId))lessonId=LESSONS[0].id;
 const lesson=()=>lessonOf(lessonId);
 let muted=store.get("muted",false);
 const todayKey=()=>{const d=new Date();return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate()};
@@ -1638,7 +1818,7 @@ const learned=lid=>store.get("learned",{})[lid]||[];
 /* 清掉題庫裡已不存在的錯題（例如舊版的閱讀題） */
 (function(){try{
   const ok=getWrong().filter(x=>{const L=LESSONS.find(l=>l.id===x.lesson);if(!L)return false;
-    return x.w?L.vocab.some(v=>v[0]===x.w[0]):L.grammar.some(g=>g.q===x.q.q&&g.a===x.q.a)});
+    return x.w?L.vocab.some(v=>v[0]===x.w[0]):(x.q.gen||L.grammar.some(g=>g.q===x.q.q&&g.a===x.q.a))});
   if(ok.length!==getWrong().length)setWrong(ok);
 }catch(e){}})();
 
@@ -1716,6 +1896,7 @@ function drawMeters(){
   $("gMeterHome").innerHTML=html;[...$("gMeterHome").children].forEach((c,i)=>c.classList.toggle("on",i<e));
   $("gNeed").textContent=GRAMMAR_NEED;
 }
+const pips=(l,m)=>`<i class="pips">${"<b class=on></b>".repeat(Math.max(l,0))}${"<b></b>".repeat(m-Math.max(l,0))}</i>今日剩 ${Math.max(l,0)} 次`;
 const bookOf=l=>l.id.slice(0,2);
 const BOOK_NAME={b1:"第一冊",b2:"第二冊",b3:"第三冊",b4:"第四冊",b5:"第五冊",b6:"第六冊"};
 function drawHome(){
@@ -1723,13 +1904,16 @@ function drawHome(){
   $("books").innerHTML="";
   [...new Set(LESSONS.map(bookOf))].forEach(b=>{const t=document.createElement("button");t.className="book-tab";t.textContent=BOOK_NAME[b]||b;t.setAttribute("aria-pressed",b===cur);
     t.onclick=()=>{if(b!==cur){lessonId=LESSONS.find(l=>bookOf(l)===b).id;store.set("lesson",lessonId);sfx.tap();drawHome()}};$("books").appendChild(t)});
+  $("books").hidden=$("books").children.length<2;
   $("lessons").innerHTML="";
   LESSONS.filter(l=>bookOf(l)===cur).forEach(l=>{const b=document.createElement("button");b.className="lesson";b.setAttribute("aria-pressed",l.id===lessonId);
     b.innerHTML=`<span class="no">${l.no}</span><span class="ttl">${l.title}</span>`;
     b.onclick=()=>{lessonId=l.id;store.set("lesson",lessonId);sfx.tap();drawHome()};$("lessons").appendChild(b)});
   const L=lesson();$("vocabProg").textContent=`已背 ${learned(L.id).length} / ${L.vocab.length}`;
   const n=getWrong().length,locked=n>=LOCK_AT;
-  $("goVocab").disabled=locked;$("goGrammar").disabled=locked;$("lockMsg").hidden=!locked;
+  const vl=leftOf("vocab"),gl=leftOf("grammar");
+  $("vLeft").innerHTML=pips(vl,DAILY_VOCAB);$("gLeft").innerHTML=pips(gl,DAILY_GRAMMAR);
+  $("goVocab").disabled=locked||vl<=0;$("goGrammar").disabled=locked;$("lockMsg").hidden=!locked;
   $("lockMsg").textContent=`🔒 錯題已經 ${n} 題！先到下面的錯題本複習，清到 ${LOCK_AT-1} 題以下才能繼續集星星。`;
   drawBook();drawMeters();drawWallet();
 }
@@ -1754,7 +1938,8 @@ function vocabQ(L,w,pool){
   const others=(pool||L.vocab).filter(x=>x[0]!==w[0]);
   const src=others.length>=3?others:L.vocab.filter(x=>x[0]!==w[0]);
   const types=["en2zh","zh2en","listen"];if(w[2])types.push("pic");
-  const t=types[Math.random()*types.length|0],d=pickN(src,3);
+  const lt=store.get("vType",{}),prev=lt[w[0]];const pool2=types.filter(x=>x!==prev);
+  const t=pool2[Math.random()*pool2.length|0],d=pickN(src,3);lt[w[0]]=t;store.set("vType",lt);
   const base={k:"v",w,lid:L.id,ex:`${w[0]} = ${w[1]}`,say:w[0]};
   if(t==="en2zh")return{...base,t:"單字・英翻中",q:`<span class="en">${w[0]}</span> 是什麼意思？`,a:w[1],o:[w[1],...d.map(x=>x[1])]};
   if(t==="zh2en")return{...base,t:"單字・中翻英",q:`「${w[1]}」的英文是？`,a:w[0],o:[w[0],...d.map(x=>x[0])]};
@@ -1766,12 +1951,16 @@ function grammarQ(x,lid){return{...x,k:"g",lid,t:x.t||"文法",say:!/___/.test(x
 /* ================= 背單字 ================= */
 let batch=[],si=0;
 function startVocab(sameBatch){
+  if(leftOf("vocab")<=0){goHome();return}
+  useChance("vocab");
   sessionEnd(false);sessionStart("vocab");
   const L=lesson();
-  if(!sameBatch){
-    const done=learned(L.id);let fresh=L.vocab.filter(w=>!done.includes(w[0]));
-    if(fresh.length<VOCAB_N)fresh=fresh.concat(shuffle(L.vocab.filter(w=>done.includes(w[0]))));
-    batch=shuffle(fresh.slice(0,Math.max(VOCAB_N,0))).slice(0,VOCAB_N);
+  if(!sameBatch){ // 一輪之內不重複：每個字都背過一次才會重新開始
+    const sAll=store.get("vSeen",{});let seen=sAll[L.id]||[];
+    let fresh=shuffle(L.vocab.filter(w=>!seen.includes(w[0])));
+    if(fresh.length<VOCAB_N){seen=[];fresh=fresh.concat(shuffle(L.vocab.filter(w=>!fresh.includes(w))))}
+    batch=fresh.slice(0,VOCAB_N);
+    sAll[L.id]=[...seen,...batch.map(w=>w[0])];store.set("vSeen",sAll);
   }
   si=0;$("studyDots").innerHTML="<i></i>".repeat(batch.length);drawStudy();show("study");
 }
@@ -1800,18 +1989,28 @@ function startQuiz(m,qs){
   if(m==="vocab")$("cells").innerHTML="<i></i>".repeat(round.length);
   show("quiz");render();
 }
-function buildGrammar(n){ // 不重複抽題；題數比題庫多時才會重新洗牌再出
-  const L=lesson();let out=[];
-  while(out.length<n){out=out.concat(shuffle(L.grammar))}
-  return out.slice(0,n).map(x=>grammarQ(x,L.id));
+/* 每日次數 */
+function daily(){const d=store.get("daily",{});if(d.d!==todayKey())return{d:todayKey(),vocab:0,grammar:0};return d}
+function useChance(kind){const d=daily();d[kind]=(d[kind]||0)+1;store.set("daily",d);drawHome()}
+const leftOf=kind=>(kind==="vocab"?DAILY_VOCAB:DAILY_GRAMMAR)-(daily()[kind]||0);
+/* 做過的題目不再出現：先出課本題庫，用完後出系統產生的新題 */
+function buildGrammar(n){
+  const L=lesson(),usedAll=store.get("usedQ",{}),used=new Set(usedAll[L.id]||[]);
+  const sig=x=>x.q+"|"+(x.h||"")+"|"+x.a;
+  let out=shuffle(L.grammar.filter(x=>!used.has(sig(x)))).slice(0,n);
+  let guard=0;
+  while(out.length<n&&GEN[L.id]&&guard++<500){const g={...GEN[L.id](),gen:true};const s=sig(g);if(!used.has(s)&&!out.some(o=>sig(o)===s))out.push(g)}
+  out.forEach(x=>used.add(sig(x)));usedAll[L.id]=[...used].slice(-3000);store.set("usedQ",usedAll);
+  return out.map(x=>grammarQ(x,L.id));
 }
 function openPick(){
   const L=lesson();$("pickLabel").textContent=`${L.no} 文法闖關`;
-  $("pickInfo").textContent=`這一課有 ${L.grammar.length} 題（都是選擇題）。每答對 1 題充 1 格，滿 ${GRAMMAR_NEED} 格得 ⭐1。`;
+  const left=leftOf("grammar");
+  $("pickInfo").innerHTML=`每次 ${ROUND_N} 題，做過的題目不會再出現。每答對 1 題充 1 格，滿 ${GRAMMAR_NEED} 格得 ⭐1。<br><b>今天還剩 ${left} / ${DAILY_GRAMMAR} 次</b>`;
   $("counts").innerHTML="";
-  COUNT_OPTIONS.forEach(n=>{const b=document.createElement("button");b.className="go"+(n===COUNT_OPTIONS[0]?" volt":"");
-    b.innerHTML=`${n}<small>${n>L.grammar.length?"題目會重複":"題"}</small>`;
-    b.onclick=()=>{sfx.tap();startQuiz("grammar",buildGrammar(n))};$("counts").appendChild(b)});
+  const b=document.createElement("button");b.className="go volt";b.disabled=left<=0;
+  b.innerHTML=left>0?`開始 ${ROUND_N} 題 ▶`:"今天的次數用完了，明天再來！";
+  b.onclick=()=>{if(leftOf("grammar")<=0)return;sfx.tap();useChance("grammar");startQuiz("grammar",buildGrammar(ROUND_N))};$("counts").appendChild(b);
   $("pickPoints").innerHTML=pointsHTML(L.id);$("pickPoints").hidden=!POINTS[L.id];
   show("pick");
 }
@@ -1903,7 +2102,8 @@ function vocabResult(){
   $("resTitle").textContent=full?"全部背起來了！":"差一點！";
   $("resBig").textContent=full?"⭐ +1":`${score} / ${round.length}`;
   $("resMsg").textContent=full?`已背 ${learned(L.id).length} / ${L.vocab.length} 個。`:`要 ${round.length} 題全對才拿得到星星。錯的字已加入錯題本，再背一次這 ${round.length} 個吧。`;
-  setBtns(full?[["再背 5 個 ▶","go",()=>startVocab(false)],["回首頁","go alt",goHome]]:[["重背這 5 個 ▶","go",()=>startVocab(true)],["回首頁","go alt",goHome]]);
+  const vl=leftOf("vocab");
+  setBtns(vl<=0?[["今天次數用完，回首頁","go",goHome]]:full?[[`再背 5 個（剩 ${vl} 次）▶`,"go",()=>startVocab(false)],["回首頁","go alt",goHome]]:[[`重背這 5 個（剩 ${vl} 次）▶`,"go",()=>startVocab(true)],["回首頁","go alt",goHome]]);
   sessionEnd(true);show("result");
 }
 function grammarResult(){
@@ -1912,7 +2112,7 @@ function grammarResult(){
   $("resBig").textContent=`${score} / ${n}`;
   const wrong=n-score;
   $("resMsg").textContent=`答對率 ${pct}%。${wrong?`錯的 ${wrong} 題已加入錯題本。`:"全部答對！"}目前文法能量 ${store.get("energy",0)} / ${GRAMMAR_NEED} 格。`;
-  setBtns([["再做一次 ▶","go",openPick],["回首頁","go alt",goHome]]);
+  setBtns([[leftOf("grammar")>0?`再一次（今天剩 ${leftOf("grammar")} 次）▶`:"今天次數用完","go",openPick],["回首頁","go alt",goHome]]);
   sessionEnd(true);show("result");
 }
 function reviewDone(){sessionEnd(true);
