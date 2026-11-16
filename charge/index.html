@@ -290,6 +290,9 @@ header{background:var(--ink);color:#fff;border-radius:6px;padding:14px 14px 12px
 .witem{border-color:var(--line);border-radius:4px}
 .lock{border-radius:4px;border-width:3px}
 @media (prefers-reduced-motion:reduce){.lesson:hover,.task:hover{transform:none}}
+.seg{text-decoration:none;border-bottom:3px solid var(--hot);padding:0 2px;margin:0 1px;white-space:nowrap}
+.seg b{font-family:var(--display);font-size:.6em;vertical-align:super;color:#fff;background:var(--hot);padding:0 4px;margin-right:2px;border-radius:2px}
+.qtype{letter-spacing:.2em}
 </style>
 
 <canvas id="fx"></canvas>
@@ -1622,13 +1625,200 @@ b2l5:["be 動詞過去式：I / he / she / it → was；you / we / they → were
 b2l6:["不規則動詞過去式：go → went, eat → ate, see → saw, buy → bought, bring → brought","make → made, win → won, swim → swam, begin → began, throw → threw, read → read","did 後面一律接原形動詞（Did you see …? / didn't buy）"],
 b3l1:["過去式描述過去發生的事：last weekend, yesterday, … ago","Did + 主詞 + 原形動詞？→ Yes, I did. / No, I didn't.","What did you do …? 問做了什麼；How was …? 問覺得如何","常見不規則動詞：ride → rode, sing → sang, tell → told, feel → felt, hold → held"],
 b3l2:["because + 句子（原因）；because of + 名詞","so + 句子（結果）；because 和 so 不能同時出現在同一句","Why …? 問原因 → Because ….","give / send / show / bring 物 to 人；buy / make 物 for 人；或直接用「動詞 + 人 + 物」"],
-b3l3:["過去進行式：was / were + V-ing（過去某個時間正在做）","搭配：at 8 last night, then, at that time, when I got home","when（當……時）、before（在……之前）、after（在……之後）","時間：a quarter past 7 = 7:15；half past 6 = 6:30；a quarter to 9 = 8:45；twenty to 7 = 6:40"],
-b3l4:["want / plan / decide / need / hope + to V","enjoy / keep / practice / finish + V-ing","like / love / start 兩種都可以（to V 或 V-ing）","動名詞 V-ing 可以當主詞（Speaking English is important.）","It is + 形容詞 + (for 人) + to V；介系詞（at, for, without）後面接 V-ing"],
+b3l3:["過去進行式：was / were + V-ing（過去某時間正在做）；否定 wasn't / weren't；問句 Was / Were + 主詞 + V-ing？","when 當……時：When + 子句, 子句。（放句首加逗號）；when 子句說未來時用現在式（Mom will buy... when I get an A.）","after / before：後發生 + after + 先發生 = 先發生 + before + 後發生；兩邊時態一致","時間：a quarter past / after 7 = 7:15；half past 6 = 6:30；ten to 6 = 5:50；說現在幾點不加介系詞（It's two twenty.），在幾點用 at","感嘆句：What + a / an + 形容詞 + 名詞 + 主詞 + 動詞！= How + 形容詞 + 主詞 + 動詞！","也：肯定句 too（句尾）、否定句 either（句尾）；附和用 Me too. / Me neither.","help + 人 + (to) V；help + 人 + with + 事；pick it / them up（代名詞放中間）","one / ones 代替前面提過的名詞；Why don't you...? 建議；think of 想到；be proud of；spend + 時間 + V-ing；finish V-ing"],
+b3l4:["接 to V：want, need, plan, learn, try, decide, hope, would like；ask / help + 人 + to V（help 也可接原形）","接 V-ing：enjoy, keep, practice, finish, quit, avoid, mind；介系詞（by, for, without, at, of）後面一律接 V-ing","兩種都可以、意思一樣：like, love, begin, start","意思不同：stop to V（停下來去做）／stop V-ing（停止正在做）；remember / forget to V（記得／忘記要做）／V-ing（記得／忘記做過）","動名詞或不定詞當主詞 → 單數動詞；兩件事用 and 連接 → 複數","It is + 形容詞 + (for 人) + to V；To V 放句首 = 為了……；名詞 + to V 當形容詞（something to eat, ways to win）","My hobby is to collect / collecting...（補語）；also 放 be 動詞後、一般動詞前","片語：look for, team up with, stay up, day and night, one another, lead to, make money, in the future, on the other hand"],
 b3l5:["未來式：will + 原形動詞；否定 won't","be going to + 原形動詞（打算……）","There is going to be … 將會有……","花時間：It takes + 人 + 時間 + to V；How long does it take …?","人 + spend + 時間 / 錢 + V-ing（或 on + 名詞）；remember to V 記得去做"],
 b3l6:["問路：How do I get to …? / Excuse me.","Walk straight / along the street；turn right / left at the corner","位置：next to, across from, between A and B, on the corner of","交通：by bus / by bike；on foot；take the metro","花錢：物 + cost + 人 + 錢；人 + spend + 錢 + on 物；人 + pay + 錢 + for 物"]
 };
 
 LESSONS.forEach(l=>l.grammar.forEach((g,i)=>{if(TR[l.id])g.zh=TR[l.id][i]}));
+
+/* ===== 第三冊 L3／L4 加深題庫（依二上講義整理：文法學Bar、Try it、段考、會考、課文句型） =====
+   B(題型, 題目, 提示, 答案, [錯誤選項×3], 解析, 翻譯, 正確句[挑錯題用])
+   題目裡 {A:文字} 是挑錯題的畫線部分 */
+const B=(t,q,h,a,w,ex,zh,fix)=>({t,q,h:h||undefined,a,o:[a,...w],ex,zh,fix});
+const NEW34={
+b3l3:[
+B("語法","___ interesting storybook it is! Let's read it again.","","What an",["How","What","How an"],"感嘆句：What + a / an + 形容詞 + 名詞 + 主詞 + 動詞！interesting 是母音開頭，用 an。","多麼有趣的故事書啊！我們再讀一次吧。"),
+B("語法","___ hot the weather is today!","","How",["What","What a","How a"],"感嘆句：How + 形容詞 + 主詞 + 動詞！後面沒有名詞就用 How。","今天天氣多麼熱啊！"),
+B("語法","___ bright Sunday! The sun is shining, and the sky is clear.","","What a",["How","What","How a"],"What + a + 形容詞 + 單數名詞！","多麼晴朗的星期天啊！陽光燦爛，天空晴朗。"),
+B("語法","___ beautiful flowers they are!","","What",["What a","How","How a"],"複數名詞前不加 a：What + 形容詞 + 複數名詞！","它們是多麼漂亮的花啊！"),
+B("改寫","What a beautiful wedding dress it is!","哪一句意思相同？","How beautiful the wedding dress is!",["How a beautiful wedding dress it is!","What beautiful the wedding dress is!","How beautiful is the wedding dress!"],"What + a + 形容詞 + 名詞 = How + 形容詞 + 主詞 + 動詞（主詞在動詞前面）。","多麼漂亮的婚紗啊！"),
+B("語法","Johnny, get a spoon. Don't eat ___ your hand.","","with",["of","at","into"],"with 表示「用」某個工具或身體部位。","Johnny，去拿支湯匙。不要用手吃。"),
+B("語法","Look! There is a fifty-dollar coin on the ground. Go and ___.","","pick it up",["pick it","pick up","pick up it"],"pick up 的受詞是代名詞（it, them）時，一定要放中間：pick it up。","看！地上有一枚五十元硬幣。去把它撿起來。"),
+B("挑錯","Peter is a good boy. He always {A:picks up them} {B:from} the {C:ground} and {D:throws} them away.","哪個畫線部分錯了？","(A) picks up them",["(B) from","(C) ground","(D) throws"],"代名詞 them 要放在 pick 和 up 中間：picks them up。","Peter 是個好孩子。他總是把它們從地上撿起來丟掉。","Peter is a good boy. He always picks them up from the ground and throws them away."),
+B("語法","Mika asked me to help her ___ the letter to her mom.","","to send",["sent","sends","sending"],"help + 人 + (to) V：幫某人做某事。","Mika 請我幫她把信寄給她媽媽。"),
+B("語法","Can you help me ___ my math homework? It's really difficult!","","with",["to","for","at"],"help + 人 + with + 事（名詞）。","你可以幫我寫數學作業嗎？真的好難！"),
+B("挑錯","Kelly is lazy. She never {A:helps} me {B:doing} {C:the} housework {D:at} home.","哪個畫線部分錯了？","(B) doing",["(A) helps","(C) the","(D) at"],"help + 人 + (to) V，不能接 V-ing。","Kelly 很懶。她從不在家幫我做家事。","Kelly is lazy. She never helps me (to) do the housework at home."),
+B("語法","Nathan cannot ___ the juice on the dining table. He's too short.","","get",["gets","to get","getting"],"cannot（= can't）後面接原形動詞。","Nathan 拿不到餐桌上的果汁。他太矮了。"),
+B("語法","A: Those black dogs are really cute.","B: Right, and the small ___ are even cuter.","ones",["it","them","one"],"one / ones 代替前面提過的名詞；dogs 是複數，用 ones。","A：那些黑狗真可愛。B：對啊，那些小隻的更可愛。"),
+B("語法","This blue shirt is cheap, but that red ___ is expensive.","","one",["ones","it","them"],"代替單數的 shirt → one。","這件藍色襯衫很便宜，但那件紅色的很貴。"),
+B("語法","Doreen likes white cats, but she hates black ___.","","ones",["one","it","them"],"代替複數的 cats → ones。","Doreen 喜歡白貓，但她討厭黑色的（貓）。"),
+B("語法","A: It's late at night, and there are no buses for me to go home.","B: Why not stay at my place ___ one night?","for",["to","in","by"],"for + 一段時間：for one night 住一晚。","A：現在很晚了，沒有公車可以讓我回家。B：何不在我家住一晚？"),
+B("語法","A: It's raining. Let's not go to the movies today, OK?","B: Sure. I don't want to go out on rainy days, ___.","either",["too","also","X（不填）"],"附和否定句的「也」用 either，放在句尾；肯定句才用 too。","A：下雨了。我們今天別去看電影，好嗎？B：好。我也不想在下雨天出門。"),
+B("語法","Tom can't swim, and his sister can't, ___.","","either",["too","also","neither"],"否定句的「也」→ either（句尾）。","Tom 不會游泳，他妹妹也不會。"),
+B("語法","My brother likes comic books, and I like them, ___.","","too",["either","also","neither"],"肯定句的「也」→ too（句尾）。also 要放在動詞前面。","我哥哥喜歡漫畫，我也喜歡。"),
+B("挑錯","Pamela {A:doesn't} drink juice, and Gemma {B:doesn't} drink it, {C:too}. They {D:like} water.","哪個畫線部分錯了？","(C) too",["(A) doesn't","(B) doesn't","(D) like"],"否定句的「也」要用 either，不是 too。","Pamela 不喝果汁，Gemma 也不喝。她們喜歡水。","Pamela doesn't drink juice, and Gemma doesn't drink it, either. They like water."),
+B("對話","A: I don't like rainy days.","B: ___","Me neither.",["Me too.","So do I.","I do, too."],"附和「否定句」用 Me neither.（或 Me either.）；Me too. 只能附和肯定句。","A：我不喜歡雨天。B：我也不喜歡。"),
+B("對話","A: I'm so thirsty.","B: ___ Let's buy some water.","Me too.",["Me neither.","Me either.","I'm not, either."],"附和「肯定句」用 Me too.","A：我好渴。B：我也是。我們去買點水吧。"),
+B("對話","A: Do you want to join us for lunch at Burger Queen?","B: No, thanks. I don't eat burgers, and I don't eat fries, ___.","either",["too","also","neither"],"否定句的「也」→ either。","A：你要和我們去 Burger Queen 吃午餐嗎？B：不了，謝謝。我不吃漢堡，也不吃薯條。"),
+B("語法","You love traveling. ___ you join us on our trip?","","Why don't",["Why not","Why doesn't","Why didn't"],"Why don't you + 原形動詞…？= 你何不……？（建議）；Why not 後面直接接原形動詞，不加 you。","你很喜歡旅行。你何不跟我們一起去旅行？"),
+B("語法","A: ___ Bentley finish his breakfast this morning?","B: Because he hates tomatoes.","Why didn't",["Why doesn't","Why don't","Why isn't"],"this morning 是過去 → Why didn't + 主詞 + 原形動詞？","A：Bentley 今天早上為什麼沒吃完早餐？B：因為他討厭番茄。"),
+B("語法","I know the man, but I just can't think ___ his name.","","of",["about","at","for"],"think of 想起、想到。","我認識那個男人，但就是想不起他的名字。"),
+B("語法","You have to spend some time ___ about your future.","","thinking",["to think","think","thought"],"spend + 時間 + V-ing。","你必須花一些時間思考你的未來。"),
+B("語法","When I saw those old photos, I ___ of my grandparents.","","thought",["think","thinking","was think"],"when 子句是過去式 saw，主要子句也用過去式；think 的過去式是 thought。","當我看到那些舊照片時，我想起了我的祖父母。"),
+B("語法","My daughter came in first in the race. I'm proud ___ her.","","of",["for","at","with"],"be proud of 以……為榮。","我女兒在比賽中得到第一名。我以她為榮。"),
+B("語法","Andy loves his country very much. He is proud ___ an American.","","to be",["being","of be","be"],"be proud to be + 名詞：以身為……為榮。","Andy 非常愛他的國家。他以身為美國人為榮。"),
+B("語法","The father walked back and ___ in front of the room.","","forth",["front","again","away"],"back and forth 來回地。","那位父親在房間前面來回走動。"),
+B("語法","Mike takes a shower ___ an hour every morning.","","for",["in","at","on"],"for + 一段時間：持續多久。","Mike 每天早上洗一個小時的澡。"),
+B("語法","After Jay practiced swimming ___ hours, he was hungry.","","for",["at","from","as"],"for hours 好幾個小時。","Jay 練習游泳好幾個小時後，他餓了。"),
+B("語法","The coffee shop ___ my house is great. I go there very often.","","close to",["close for","near to","next"],"close to 靠近；near 後面直接接地點，不加 to。","我家附近的咖啡店很棒。我很常去那裡。"),
+B("語法","Mia dropped her bag ___ the sofa and hurried to the bathroom.","","on",["at","of","for"],"drop + 物 + 介系詞 + 地方：丟在沙發上 → on the sofa。","Mia 把包包丟在沙發上，急忙跑去浴室。"),
+B("語法","My husband dropped me ___ the department store and went home.","","at",["in","on","for"],"drop + 人 + at + 地方：開車載某人到某地放下。","我先生載我到百貨公司，然後就回家了。"),
+B("語法","Answer the following questions ___, please.","","one by one",["by one","one and one","every one"],"one by one 一個接一個。","請一一回答下列問題。"),
+B("語法","See you tomorrow. ___, don't forget to prepare for the English test.","","By the way",["Wait and see","Good job","Me too"],"By the way 順帶一提，用來轉換話題。","明天見。順帶一提，別忘了準備英文考試。"),
+B("對話","A: Son, you can't win all the time.","B: ___ Losing a game is no big deal.","You're right.",["Wait and see.","Me neither.","By the way."],"You're right. 你說得對（表示認同）。","A：兒子，你不可能一直贏。B：你說得對。輸一場比賽沒什麼大不了。"),
+B("對話","A: Dad, can the boy in the story find his way home in the end?","B: ___","Wait and see.",["Good job!","Me too.","You're welcome."],"Wait and see. 等著瞧吧（耐心等就會知道）。","A：爸爸，故事裡的男孩最後找得到回家的路嗎？B：等著看吧。"),
+B("語法","Maggie was watching a movie ___ her mother came back home.","","when",["because","so","but"],"when 當……的時候；常搭配過去進行式。","媽媽回家的時候，Maggie 正在看電影。"),
+B("語法","Mark ___ to the radio after he finished his homework.","","listened",["listens","listening","listen"],"after 子句是過去式 finished，主要子句也用過去式。","Mark 寫完功課之後聽了廣播。"),
+B("語法","Kelly was studying history in her bedroom ___.","","at that time",["yesterday","ago","now"],"過去進行式要搭配明確的過去時間點，例如 at that time、then、at 8 last night。","Kelly 那時正在她房間裡讀歷史。"),
+B("語法","Brush your teeth ___ you eat. That is good for your teeth.","","after",["when","before","but"],"吃完東西之後刷牙對牙齒好 → after。","吃完東西後要刷牙。那對你的牙齒好。"),
+B("語法","A: What ___ you and Ted doing then?","B: We were playing video games.","were",["did","do","could"],"過去進行式問句：What + were + 主詞 + V-ing？you and Ted 是複數。","A：你和 Ted 那時在做什麼？B：我們在玩電玩。"),
+B("語法","Mom will buy me a new bike when I ___ an A on my English test.","","get",["will get","got","getting"],"when 子句說的是未來的事時，要用現在式（主要子句才用 will）。","當我英文考試拿到 A，媽媽就會買一台新腳踏車給我。"),
+B("挑錯","Mom {A:will buy} a new bike for me when I {B:will get} an A {C:on} my English {D:test}.","哪個畫線部分錯了？","(B) will get",["(A) will buy","(C) on","(D) test"],"when 引導的時間子句表示未來時用現在式：when I get。","當我英文考試拿到 A，媽媽會買一台新腳踏車給我。","Mom will buy a new bike for me when I get an A on my English test."),
+B("語法","Leo visits his old friends ___ he has free time.","","when",["what","so","but"],"when 當……的時候（現在的習慣用現在式）。","Leo 有空的時候會去拜訪老朋友。"),
+B("語法","A: ___ can you buy your own car?","B: I can buy one when I save enough money.","When",["What","How","Where"],"問「什麼時候」→ When。","A：你什麼時候可以買自己的車？B：等我存夠錢就可以買一台。"),
+B("語法","Be very careful ___ you walk on the street at night.","","when",["before","because","so"],"when 當……的時候。","晚上走在街上的時候要非常小心。"),
+B("合併","Jane ate breakfast at 6:50. Andrew went out at 7:30.","用 after 合併，哪一句正確？","Andrew went out after Jane ate breakfast.",["Jane ate breakfast after Andrew went out.","Andrew goes out after Jane eats breakfast.","Andrew went out after Jane eats breakfast."],"後發生的事 + after + 先發生的事；兩個都是過去的事，都用過去式。","Jane 吃完早餐之後，Andrew 出門了。"),
+B("改寫","Kim mopped the floor before Sunny came home.","哪一句意思相同？","Sunny came home after Kim mopped the floor.",["Kim mopped the floor after Sunny came home.","Sunny came home before Kim mopped the floor.","Kim came home after Sunny mopped the floor."],"A before B = B after A（先發生的事不變）。","Sunny 回家之前，Kim 拖好了地。"),
+B("改寫","Ryder listened to music after he finished his homework.","哪一句意思相同？","Ryder finished his homework before he listened to music.",["Ryder listened to music before he finished his homework.","Ryder finished his homework after he listened to music.","Before Ryder finished his homework, he listened to music."],"先寫完功課，才聽音樂：finished... before listened...","Ryder 寫完功課後聽音樂。"),
+B("改寫","Nancy went to the doctor before she picked up her son.","用 After 開頭改寫，哪一句正確？","After Nancy went to the doctor, she picked up her son.",["After Nancy picked up her son, she went to the doctor.","After Nancy goes to the doctor, she picked up her son.","Nancy went to the doctor after she picked up her son."],"After + 先發生的事, 後發生的事。（從屬子句放句首要加逗號）","Nancy 看完醫生之後，去接她兒子。"),
+B("改寫","Alex cleaned the kitchen after he watched TV last night.","用 before 改寫，哪一句正確？","Alex watched TV before he cleaned the kitchen last night.",["Alex cleaned the kitchen before he watched TV last night.","Alex watches TV before he cleaned the kitchen last night.","Alex watched TV before he cleans the kitchen last night."],"先看電視，後打掃：watched TV before cleaned。","Alex 昨晚看完電視之後打掃了廚房。"),
+B("改寫","The children were playing soccer at that time.","針對 playing soccer 發問，哪一句正確？","What were the children doing at that time?",["What did the children do at that time?","What were the children play at that time?","What was the children doing at that time?"],"問過去某時正在做什麼：What + was / were + 主詞 + doing？children 是複數 → were。","孩子們那時在做什麼？"),
+B("改寫","Fiona was writing a letter in her room.","針對 writing a letter 發問，哪一句正確？","What was Fiona doing in her room?",["What did Fiona doing in her room?","What was Fiona do in her room?","What were Fiona doing in her room?"],"What + was + 單數主詞 + doing？","Fiona 在她房間裡做什麼？"),
+B("語法","A: ___ was Joe going when you saw him?","B: He was going to the library.","Where",["What","When","Who"],"回答地點（圖書館）→ 問 Where。","A：你看到 Joe 的時候他正要去哪裡？B：他正要去圖書館。"),
+B("語法","A: ___ your brother watching TV with you at 8 last night?","B: Yes, he was.","Was",["Did","Is","Were"],"過去進行式問句：Was / Were + 主詞 + V-ing？your brother 單數 → Was。","A：你哥哥昨晚八點和你一起看電視嗎？B：是的，他有。"),
+B("語法","Emma ___ on the phone at 7 last night.","","was talking",["talks","is talking","talking"],"at 7 last night 過去某時正在做 → was + V-ing。","Emma 昨晚七點正在講電話。"),
+B("語法","I ___ a shower at that time. I was watching TV.","","wasn't taking",["weren't taking","am not taking","wasn't take"],"過去進行式否定：was not（wasn't）+ V-ing。","我那時不是在洗澡。我在看電視。"),
+B("語法","Nick: What was Chris doing then?","Sally: He ___ ice cream with his classmates.","was having",["had","is having","have"],"問 was doing → 答 was + V-ing。","Nick：Chris 那時在做什麼？Sally：他在和同學吃冰淇淋。"),
+B("語法","Mr. Davis ___ the trees in the park when I saw him.","","was watering",["waters","is watering","water"],"當我看到他時（過去）他正在做 → was + V-ing。","我看到 Davis 先生時，他正在公園替樹澆水。"),
+B("語法","Nina was swimming ___, but we weren't.","","at that time",["yesterday","next Monday","next weekend"],"過去進行式搭配過去時間點 at that time。","Nina 那時在游泳，但我們沒有。"),
+B("語法","When Mia told us the sad story, we ___ her a warm hug.","","gave",["giving","give","are giving"],"when 子句過去式 told，主要子句也用過去式 gave。","當 Mia 告訴我們那個悲傷的故事時，我們給了她一個溫暖的擁抱。"),
+B("語法","Emma took a shower and put on her new clothes ___ her birthday party started.","","before",["because of","because","but"],"派對開始「之前」先洗澡換衣服 → before。","Emma 在生日派對開始前洗了澡、穿上新衣服。"),
+B("時間","A: What time is it?","B: It's ___ two twenty.","X（不填）",["at","on","in"],"說「現在幾點」：It's + 時間，不用介系詞。","A：現在幾點？B：兩點二十分。","A: What time is it?  B: It's two twenty."),
+B("時間","It is ten ___ nine. Let's hurry. The bus is leaving at 9:00.","","to",["after","past","X（不填）"],"還差十分鐘到九點 → ten to nine（8:50）。","現在八點五十分。快點。公車九點要開了。"),
+B("時間","Hanna: What time is it?","Daniel: It's almost eleven. It's ___.","ten to eleven",["ten past eleven","a quarter to five","a quarter past nine"],"「快要十一點」→ 還差十分 = ten to eleven（10:50）。","Hanna：現在幾點？Daniel：快十一點了。十點五十分。"),
+B("時間","John went to work at 7:45.","用 quarter 改寫，哪一句正確？","John went to work at a quarter to eight.",["John went to work at a quarter past seven.","John went to work at a quarter to seven.","John went to work at three quarters to eight."],"7:45 = 差 15 分 8 點 = a quarter to eight。","John 七點四十五分去上班。"),
+B("時間","A: What time did you leave your home?","B: I left ___ a quarter to eight.","at",["X（不填）","on","in"],"在某個時刻用 at。","A：你幾點離開家的？B：我七點四十五分離開。"),
+B("時間","It's 4:20 now. It's twenty ___ four.","","past",["to","of","at"],"1～30 分用 past / after：twenty past four。","現在四點二十分。"),
+B("時間","It's 5:50 now. It's ten ___ six.","","to",["past","after","of"],"31～59 分用「差幾分 + to + 下一個整點」：ten to six。","現在五點五十分。"),
+B("時間","6:15 can be read as \"a quarter ___ six.\"","","after",["to","of","before"],"past 和 after 都可以表示「過幾分」。","6:15 可以唸成 a quarter after six。"),
+B("語法","I can lend you this book after I finish ___ it.","","reading",["to read","read","reads"],"finish + V-ing。","我讀完這本書之後可以借你。"),
+B("語法","My father never asks ___ directions even when he gets lost.","","for",["to","about","with"],"ask for + 名詞：要求、請求（ask for directions 問路）。","我爸即使迷路了也從不問路。"),
+B("語法","Tim stood up from the chair ___ walked to the front of the classroom.","","and then",["then and","but then","so then"],"and then 然後（連接兩個動作）。","Tim 從椅子上站起來，然後走到教室前面。"),
+B("挑錯","Tina {A:flew} over to the rocks and then {B:picked up} a big {C:ones} {D:with} her beak.","哪個畫線部分錯了？","(C) ones",["(A) flew","(B) picked up","(D) with"],"a big 後面是單數，代替 rock 要用 one。","Tina 飛到石頭那裡，然後用嘴叼起一顆大的。","Tina flew over to the rocks and then picked up a big one with her beak."),
+B("挑錯","When I {A:got} home, my mom {B:is looking} {C:for} her {D:glasses}.","哪個畫線部分錯了？","(B) is looking",["(A) got","(C) for","(D) glasses"],"when 子句是過去式 got，「當時正在做」要用過去進行式 was looking。","我回到家時，媽媽正在找她的眼鏡。","When I got home, my mom was looking for her glasses."),
+B("挑錯","Mr. Lee {A:was} {B:read} the newspaper {C:when} the phone {D:rang}.","哪個畫線部分錯了？","(B) read",["(A) was","(C) when","(D) rang"],"過去進行式是 was + V-ing：was reading。","電話響的時候，李先生正在看報紙。","Mr. Lee was reading the newspaper when the phone rang."),
+B("句意","當 Gary 打給我時，我正在洗碗。","哪一句英文正確？","I was washing the dishes when Gary called me.",["I washed the dishes when Gary was calling me.","I am washing the dishes when Gary called me.","When I was washing the dishes, Gary calls me."],"「正在做」用過去進行式；「打電話」那一瞬間用過去簡單式。","當 Gary 打給我時，我正在洗碗。"),
+B("句意","Hank 總是在去上班前讀報紙。","哪一句英文正確？","Hank always reads the newspaper before he goes to work.",["Hank always reads the newspaper after he goes to work.","Hank always read the newspaper before he goes to work.","Hank always reads the newspaper before he went to work."],"習慣用現在式，兩個子句時態一致；先讀報紙 before 去上班。","Hank 總是在去上班前讀報紙。"),
+B("句意","那些年輕人很以自己的國家為榮。","哪一句英文正確？","Those young people are proud of their country.",["Those young people are proud for their country.","Those young people proud of their country.","Those young people are pride of their country."],"be proud of + 名詞。","那些年輕人很以自己的國家為榮。"),
+B("句意","當時是九點五十分，而 Jason 正在準備考試。","哪一句英文正確？","It was ten to ten then, and Jason was preparing for a test.",["It was ten past nine then, and Jason was preparing for a test.","It was ten to nine then, and Jason was preparing for a test.","It was ten to ten then, and Jason prepared for a test."],"9:50 = 差十分十點 = ten to ten；「正在準備」用過去進行式。","當時是九點五十分，Jason 正在準備考試。"),
+B("句意","Anderson 很焦慮，所以他一直在房間裡來回走動。","哪一句英文正確？","Anderson was anxious, so he kept walking back and forth in the room.",["Anderson was anxious, so he kept to walk back and forth in the room.","Anderson was anxious, so he kept walking forth and back in the room.","Anderson was anxious, because he kept walking back and forth in the room."],"keep + V-ing；「來回」固定說 back and forth。","Anderson 很焦慮，所以他一直在房間裡來回走動。"),
+B("字彙","We have four people here. Please cut the cake into ___.","","quarters",["roads","beaks","maps"],"quarter 四分之一；四個人 → 切成四份。","我們這裡有四個人。請把蛋糕切成四份。"),
+B("字彙","The bus is ___ coming. We are almost late!","","finally",["clearly","dry","back"],"finally 終於。","公車終於來了。我們差點遲到！"),
+B("字彙","No one can ___ John. Maybe he doesn't have his cellphone with him.","","reach",["cross","drop","fly"],"reach 聯絡上、碰到。","沒有人聯絡得上 John。也許他沒帶手機。"),
+B("字彙","Mike is the ___ child. He has a big brother and a little sister.","","middle",["top","clear","past"],"middle 中間的；排行中間的孩子。","Mike 是排行中間的孩子。他有一個哥哥和一個妹妹。"),
+B("字彙","Jay was late. The meeting ___ at 10, but he got there at 10:20.","","began",["crossed","reached","dropped"],"begin（過去式 began）開始。","Jay 遲到了。會議十點開始，但他十點二十分才到。"),
+B("字彙","After Anne got the medicine, she ___ her doctor many questions about it.","","asked",["crossed","dried","found"],"ask + 人 + 問題：問某人問題。","Anne 拿到藥之後，問了醫生很多關於藥的問題。"),
+B("字彙","There is a new restaurant next to the library. Let's eat ___ there.","","something",["rock","forest","middle"],"something 某樣東西。","圖書館旁邊有一家新餐廳。我們去那裡吃點東西吧。"),
+B("字彙","Mrs. Lee: Richard, the robot is not yours. Put it ___ now.","Richard: OK. I'm sorry.","back",["finally","past","once"],"put... back 放回原處。","李太太：Richard，那個機器人不是你的。現在把它放回去。Richard：好。對不起。"),
+B("字彙","Jack never studies in this room. This room is not ___ enough.","","bright",["dry","proud","middle"],"bright 明亮的。","Jack 從不在這個房間讀書。這個房間不夠亮。"),
+B("字彙","There is too much work for Clay. He can't ___ it until 10 or 11.","","finish",["reach","drop","pick"],"finish 完成。","Clay 的工作太多了。他要到十點或十一點才做得完。")
+],
+b3l4:[
+B("語法","Peggy wants ___ a nurse when she grows up.","","to be",["be","is","being"],"want + to V。","Peggy 長大後想當護理師。"),
+B("語法","Victor planned ___ a song for everyone yesterday.","","to sing",["sang","singing","sings"],"plan + to V；不定詞不隨時態改變。","Victor 昨天打算為大家唱一首歌。"),
+B("語法","Ken can help you ___ the card to Sarah.","","send",["sending","to sending","sends"],"help + 人 + (to) V。","Ken 可以幫你把卡片寄給 Sarah。"),
+B("語法","Ashley learned ___ a computer when she was about 7 years old.","","to use",["using","used","be using"],"learn + to V。","Ashley 大約七歲時學會使用電腦。"),
+B("語法","Greg needed ___ his son to a doctor because he had a high fever.","","to take",["took","taking","takes"],"need + to V。","Greg 需要帶兒子去看醫生，因為他發高燒。"),
+B("語法","Edison has ___ to Hong Kong because of his father's new job.","","to move",["moving","moves","move"],"have to + 原形動詞：必須。","因為爸爸的新工作，Edison 必須搬到香港。"),
+B("語法","Emily enjoys ___ pies for her friends, and she is also good at it.","","making",["makes","to make","make"],"enjoy + V-ing。","Emily 喜歡為朋友做派，她也很擅長。"),
+B("語法","Roland finished ___ the dishes before his wife came home.","","doing",["to do","did","does"],"finish + V-ing。","Roland 在太太回家前洗好了碗。"),
+B("語法","Anne finally finished ___ the report when it was almost 1 a.m.","","writing",["to write","wrote","write"],"finish + V-ing。","快凌晨一點時，Anne 終於寫完報告了。"),
+B("語法","Pro gamers learn by ___ fighting one another.","","practicing",["practice","to practice","practiced"],"介系詞 by 後面接 V-ing；practice 後面也接 V-ing。","職業玩家藉由彼此練習對打來學習。"),
+B("語法","___ a lot of fruit is good for our health.","","Eating",["Eats","Ate","Eat"],"動名詞 V-ing 當主詞。","吃很多水果對健康有益。"),
+B("語法","Karen loves teaching. Teaching young kids always ___ her a lot of fun.","","gives",["give","giving","to give"],"動名詞片語當主詞視為第三人稱單數 → gives。","Karen 熱愛教書。教小朋友總是帶給她很多樂趣。"),
+B("語法","Practicing tennis with Josh ___ Ted's everyday task.","","is",["are","be","to be"],"動名詞片語當主詞，動詞用單數 is。","和 Josh 練網球是 Ted 每天的任務。"),
+B("語法","Speaking English and writing English ___ both important.","","are",["is","be","being"],"兩個動名詞片語用 and 連接 → 兩件事 → 複數 are。","說英文和寫英文都很重要。"),
+B("語法","Swimming lessons ___ popular in summer.","","are",["is","to be","being"],"主詞是 lessons（複數名詞），不是動名詞主詞 → are。","游泳課在夏天很受歡迎。"),
+B("語法","___ interesting to watch a comedy on TV.","","It's",["It","This","That has"],"It is + 形容詞 + to V（It 是虛主詞）。","在電視上看喜劇很有趣。"),
+B("語法","___ is interesting for the students to learn and play at the same time.","","It",["Its","There","Which"],"虛主詞 It 代替後面真正的主詞 to learn and play。","學生同時學習和玩耍很有趣。"),
+B("語法","It's difficult ___ Ellen to cook.","","for",["from","at","about"],"It is + 形容詞 + for + 人 + to V。","煮飯對 Ellen 來說很難。"),
+B("語法","It's important ___ good care of one's health.","","to take",["and take","took","takes"],"It is + 形容詞 + to V。","好好照顧自己的健康很重要。"),
+B("語法","It is not easy for my little sister ___ her homework by herself.","","to finish",["finish","finishes","finished"],"It is + 形容詞 + for 人 + to V。","對我妹妹來說，自己完成功課不容易。"),
+B("語法","It is interesting ___ a live basketball game in the gym.","","to watch",["watch","watched","for watching"],"It is + 形容詞 + to V。","在體育館看籃球比賽直播很有趣。"),
+B("語法","The teacher forgot ___ the lesson, so she taught the same lesson again.","","teaching",["to teach","taught","to teaching"],"forget + V-ing：忘記「已經做過」某事（所以又教了一次）。","老師忘了已經教過這課，所以又教了一次同樣的內容。"),
+B("語法","Olivia forgot ___ her sister a birthday gift. She felt very sorry.","","to buy",["bought","to bought","buying"],"forget + to V：忘記「要去做」某事（沒做到）。","Olivia 忘了要買生日禮物給她妹妹。她覺得很抱歉。"),
+B("語法","The bus is coming! Stop ___ and get ready to get on the bus.","","talking",["to talk","to talking","talks"],"stop + V-ing：停止正在做的事。","公車來了！別再聊天，準備上車。"),
+B("語法","Leo was walking home. He stopped ___ a drink at the store.","","to buy",["buying","buy","bought"],"stop + to V：停下來「去做」另一件事。","Leo 走路回家時，停下來去商店買飲料。"),
+B("語法","A: Did you take your medicine?","B: Yes, I remembered ___ it an hour ago.","taking",["and take","took","to taking"],"remember + V-ing：記得「已經做過」。","A：你吃藥了嗎？B：有，我記得一小時前吃過了。"),
+B("語法","Remember ___ off the lights when you leave the room.","","to turn",["turning","turn","turned"],"remember + to V：記得「要去做」。","離開房間時記得要關燈。"),
+B("語法","A: Why did you buy so much milk?","B: I bought the milk ___ cheese.","to make",["make","making","makes"],"to V 表示目的：為了做起司。","A：你為什麼買這麼多牛奶？B：我買牛奶是為了做起司。"),
+B("語法","___ a great picnic, we need to prepare a lot of delicious food.","","To have",["Have","Having","It's"],"To V 放句首加逗號，表示「為了……」。","為了辦一場很棒的野餐，我們需要準備很多好吃的食物。"),
+B("語法","I'm hungry. Is there anything ___?","","to eat",["eating","eat","ate"],"to V 放在名詞（代名詞）後面當形容詞：可以吃的東西。","我餓了。有什麼可以吃的嗎？"),
+B("語法","Pro gamers are always looking for new ways ___.","","to win",["winning","win","won"],"to win 修飾 new ways：獲勝的新方法。","職業玩家總是在尋找獲勝的新方法。"),
+B("語法","My hobby is ___ stamps.","","to collect",["collect","collects","collected"],"不定詞（或動名詞）可以當補語：我的嗜好是收集郵票。","我的嗜好是收集郵票。"),
+B("語法","Joyce's job is ___ math in a junior high school.","","teaching",["teach","teaches","taught"],"動名詞（或不定詞）當補語：她的工作是教數學。","Joyce 的工作是在國中教數學。"),
+B("語法","Gina left without ___ goodbye.","","saying",["to say","say","said"],"介系詞 without 後面接 V-ing。","Gina 沒說再見就離開了。"),
+B("語法","Thanks for ___ me the book.","","bringing",["to bring","bring","brought"],"介系詞 for 後面接 V-ing。","謝謝你幫我把書帶來。"),
+B("語法","I'm sorry for ___ so rude last time.","","being",["to be","be","am"],"for + V-ing；be 動詞的 V-ing 是 being。","很抱歉我上次那麼沒禮貌。"),
+B("語法","Emily is afraid of ___ questions in class.","","asking",["to ask","ask","asks"],"介系詞 of 後面接 V-ing。","Emily 很怕在課堂上問問題。"),
+B("語法","Thomas learned English ___ listening to English songs.","","by",["at","to","about"],"by + V-ing：藉由……的方法。","Thomas 藉由聽英文歌學英文。"),
+B("語法","Tina earns her pocket money ___ washing cars on weekends.","","by",["with","for","at"],"by + V-ing：藉由做某事。","Tina 靠週末洗車賺零用錢。"),
+B("語法","Sadly, some pro gamers have health problems because they play for hours without ___.","","stopping",["to stop","stop","stopped"],"without + V-ing。","令人遺憾的是，有些職業玩家有健康問題，因為他們一玩就好幾個小時都不停。"),
+B("語法","Mike likes ___ that song.","","to sing",["sing","sang","sings"],"like 後面接 to V 或 V-ing 都可以，意思一樣。","Mike 喜歡唱那首歌。"),
+B("語法","They started ___ the houses in November.","","to build",["build","built","builds"],"start 後面接 to V 或 V-ing 都可以。","他們在十一月開始蓋那些房子。"),
+B("語法","If you want to win the game, you have to ___ a lot.","","train",["training","trained","and train"],"have to + 原形動詞。","如果你想贏得比賽，就必須大量訓練。"),
+B("語法","Look! ___ many beautiful flowers here.","","There are",["There is","There have","There"],"There are + 複數名詞。","看！這裡有好多漂亮的花。"),
+B("語法","My key is gone. I'm looking ___ it now.","","for",["in","at","with"],"look for 尋找。","我的鑰匙不見了。我正在找它。"),
+B("語法","Eric went to the USA to look ___ new business partners.","","for",["at","up","after"],"look for 尋找；to look for 表示去美國的目的。","Eric 去美國尋找新的生意夥伴。"),
+B("語法","I teamed up ___ my good friends to play three-on-three basketball.","","with",["for","to","of"],"team up with + 人：和某人組隊。","我和好朋友組隊去打三對三籃球。"),
+B("語法","Don't stay ___ late again. Go to bed now!","","up",["on","at","in"],"stay up 熬夜。","不要再熬夜了。現在就去睡覺！"),
+B("語法","John is ___ good at math. You can ask him for help.","","also",["too","either","so"],"also（也）放在 be 動詞後面、一般動詞前面。","John 數學也很好。你可以請他幫忙。"),
+B("語法","Jack sometimes feels lonely ___ he is the only child in his family.","","because",["so","but","before"],"because + 原因：因為他是家裡唯一的小孩。","Jack 有時覺得很孤單，因為他是家裡唯一的小孩。"),
+B("挑錯","Emily {A:enjoys} {B:to make} pies for her friends, and she is also good {C:at} {D:it}.","哪個畫線部分錯了？","(B) to make",["(A) enjoys","(C) at","(D) it"],"enjoy 後面要接 V-ing：enjoys making。","Emily 喜歡為朋友做派，她也很擅長。","Emily enjoys making pies for her friends, and she is also good at it."),
+B("挑錯","{A:Watch} TV for a long time {B:is} not good {C:for} our {D:eyes}.","哪個畫線部分錯了？","(A) Watch",["(B) is","(C) for","(D) eyes"],"動詞要當主詞要變成動名詞：Watching TV...","看太久電視對眼睛不好。","Watching TV for a long time is not good for our eyes."),
+B("挑錯","It {A:is} important for us {B:keep} {C:practicing} every {D:day}.","哪個畫線部分錯了？","(B) keep",["(A) is","(C) practicing","(D) day"],"It is + 形容詞 + for 人 + to V：to keep practicing。","每天持續練習對我們很重要。","It is important for us to keep practicing every day."),
+B("挑錯","Peggy {A:wants} {B:being} a nurse {C:when} she {D:grows up}.","哪個畫線部分錯了？","(B) being",["(A) wants","(C) when","(D) grows up"],"want + to V：wants to be。","Peggy 長大後想當護理師。","Peggy wants to be a nurse when she grows up."),
+B("挑錯","Sam was hungry, so he {A:started} eating {B:without} {C:wash} his hands {D:first}.","哪個畫線部分錯了？","(C) wash",["(A) started","(B) without","(D) first"],"without 是介系詞，後面要接 V-ing：without washing。","Sam 很餓，所以他沒先洗手就開始吃。","Sam was hungry, so he started eating without washing his hands first."),
+B("改寫","Being a good teacher is not easy for Neilson.","改成 It's... 句型，哪一句正確？","It is not easy for Neilson to be a good teacher.",["It is not easy for Neilson be a good teacher.","It is not easy to Neilson to be a good teacher.","That is not easy for Neilson to be a good teacher."],"V-ing... is + 形容詞 = It is + 形容詞 + for 人 + to V。","當個好老師對 Neilson 來說不容易。"),
+B("改寫","It's not healthy to drink only juice.","用動名詞開頭改寫，哪一句正確？","Drinking only juice is not healthy.",["Drink only juice is not healthy.","Drinking only juice are not healthy.","Drinks only juice is not healthy."],"動名詞當主詞 + 單數動詞 is。","只喝果汁不健康。"),
+B("改寫","Dora wants to take a trip to Canada.","把 wants 改成 enjoyed，哪一句正確？","Dora enjoyed taking a trip to Canada.",["Dora enjoyed to take a trip to Canada.","Dora enjoyed take a trip to Canada.","Dora enjoys taking a trip to Canada."],"enjoy + V-ing；題目要求用過去式 enjoyed。","Dora 很享受去加拿大的旅行。"),
+B("改寫","Pro gamers look for new ways to win.","句中加入 keep，哪一句正確？","Pro gamers keep looking for new ways to win.",["Pro gamers keep to look for new ways to win.","Pro gamers keep look for new ways to win.","Pro gamers keeps looking for new ways to win."],"keep + V-ing；主詞 Pro gamers 是複數，用 keep。","職業玩家一直在尋找獲勝的新方法。"),
+B("合併","Joan took away Holly's cellphone. Joan didn't tell Holly about it.","用 without 合併，哪一句正確？","Joan took away Holly's cellphone without telling her about it.",["Joan took away Holly's cellphone without tell her about it.","Joan took away Holly's cellphone without to tell her about it.","Joan took away Holly's cellphone without told her about it."],"without + V-ing：沒有做某事。","Joan 沒告訴 Holly 就拿走了她的手機。"),
+B("句意","彈吉他對他們來說很好玩。","哪一句英文正確？","Playing the guitar is a lot of fun for them.",["Play the guitar is a lot of fun for them.","Playing the guitar are a lot of fun for them.","Playing the guitar is a lot of fun for they."],"動名詞主詞 + is；介系詞 for 後面用受格 them。","彈吉他對他們來說很好玩。"),
+B("句意","你可以和我組隊去參加網球比賽嗎？","哪一句英文正確？","Can you team up with me for the tennis game?",["Can you team with up me for the tennis game?","Can you team up for me with the tennis game?","Can you team up me with for the tennis game?"],"team up with + 人。","你可以和我組隊去參加網球比賽嗎？"),
+B("句意","Cindy 日以繼夜地照顧她生病的爸爸。","哪一句英文正確？","Cindy took care of her sick father day and night.",["Cindy took care her sick father day and night.","Cindy took care of her sick father days and nights.","Cindy takes care of her sick father day and night yesterday."],"take care of 照顧；day and night 日以繼夜。","Cindy 日以繼夜地照顧她生病的爸爸。"),
+B("句意","打破壞習慣是很難的。","哪一句英文正確？","It is hard to break a bad habit.",["It is hard break a bad habit.","Break a bad habit is hard.","It is hard breaking a bad habit to."],"It is + 形容詞 + to V = V-ing... is + 形容詞。","打破壞習慣是很難的。"),
+B("對話","Nick: I want to be a cook and open a restaurant.","Joyce: ___ You don't even help your mom in the kitchen.","Are you serious?",["For example?","Where is the restaurant?","You can be a great cook!"],"Are you serious? 你是認真的嗎？（後面說他連廚房都不幫忙）","Nick：我想當廚師開餐廳。Joyce：你是認真的嗎？你連在廚房幫你媽媽都沒有。"),
+B("對話","A: It's not easy to be a YouTuber.","B: I know, but ___, a dream is just a dream.","without the first step",["on the other hand","one another","day and night"],"without the first step 沒有第一步（夢想就只是夢想）。","A：當 YouTuber 不容易。B：我知道，但不踏出第一步，夢想就只是夢想。"),
+B("字彙","Eileen misses her father very much, and she ___ about him every night.","","dreams",["acts","stops","fights"],"dream about 夢到。","Eileen 非常想念她爸爸，每晚都夢到他。"),
+B("字彙","Nicolas is a great ___. He is famous for his books about teenagers.","","writer",["mailman","actor","waiter"],"writer 作家（寫書的人）。","Nicolas 是很棒的作家。他以寫青少年的書出名。"),
+B("字彙","Tommy is a nice and ___ person. His family and friends always feel happy when he is around.","","funny",["afraid","sick","rainy"],"funny 好笑的、有趣的。","Tommy 是個友善又有趣的人。他在的時候，家人和朋友總是很開心。"),
+B("字彙","Zack: Being a mailman in the ___ is my dream.","Wayne: As for me, I want to be a police officer.","future",["plan","report","camera"],"in the future 在未來。","Zack：未來當郵差是我的夢想。Wayne：至於我，我想當警察。"),
+B("字彙","Mina: What's your ___ for this weekend?","David: Just stay at home and rest.","plan",["report","money","train"],"plan 計畫。","Mina：你這週末有什麼計畫？David：就待在家休息。"),
+B("字彙","That photo must be ___ to Carl. He brings it with him everywhere.","","important",["popular","dry","bright"],"important 重要的。","那張照片對 Carl 一定很重要。他到哪裡都帶著它。"),
+B("字彙","Eating too much or too little can ___ to serious health problems.","","lead",["train","dream","fight"],"lead to 導致。","吃太多或吃太少都可能導致嚴重的健康問題。"),
+B("字彙","Those ___ can't wait to start their new life in college.","","teenagers",["reporters","waitresses","mailmen"],"teenager 青少年。","那些青少年等不及要開始大學新生活。"),
+B("字彙","The Bears got 100 points, and the Tigers got 98. The basketball game was really ___.","","exciting",["sick","afraid","rainy"],"exciting 令人興奮的、刺激的。","熊隊得 100 分，虎隊得 98 分。這場籃球賽真的很刺激。"),
+B("字彙","___ those factories, the air in this city is very clean now.","","Without",["With","By","For"],"without 沒有。","沒有了那些工廠，這座城市現在空氣很乾淨。"),
+B("字彙","The little boy finally ___ crying when he saw his mother.","","stopped",["kept","practiced","enjoyed"],"stop + V-ing 停止哭泣。","小男孩看到媽媽時終於不哭了。"),
+B("字彙","The famous actor doesn't like to go out because a big group of ___ are always waiting out there.","","reporters",["secretaries","mailmen","housewives"],"reporter 記者。","那位知名演員不喜歡出門，因為外面總是有一大群記者在等。"),
+B("字彙","Mr. Moore is too busy. He needs a ___ to help him prepare for meetings and answer phone calls.","","secretary",["singer","police officer","waiter"],"secretary 祕書。","Moore 先生太忙了。他需要一位祕書幫他準備會議和接電話。"),
+B("字彙","Ken didn't go to the game because he didn't have any ___ for the ticket.","","money",["camera","plan","dream"],"money 錢。","Ken 沒去看比賽，因為他沒錢買票。")
+]};
+
+LESSONS.forEach(l=>{if(NEW34[l.id])l.grammar=l.grammar.slice(0,18).concat(NEW34[l.id])});
 LESSONS.splice(0,LESSONS.length,...LESSONS.filter(l=>ENABLED.includes(l.id)));
 
 /* ================= 文法題產生器：題庫做完後，自動出「新」的同型題 ================= */
@@ -1735,6 +1925,7 @@ function zhOf(q){if(q.zh)return q.zh;const L=LESSONS.find(l=>l.id===q.lid);if(!L
 function pointsHTML(lid){const p=POINTS[lid];if(!p)return"";return `<h3>📘 ${lessonOf(lid).no} 文法重點</h3><ul>${p.map(x=>`<li>${x}</li>`).join("")}</ul>`}
 const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");
 function fullSentence(q){ // 把答案填回題目
+  if(q.fix)return `✔ ${esc(q.fix)}`;
   if(/[\u4e00-\u9fff]/.test(q.q)&&!/___/.test(q.q))return `<mark>${esc(q.a)}</mark>`;
   let txt=q.q.replace(/（.*?）/g,"").replace(/^.*?[。」]+(?=[A-Z])/,"")+(q.h&&!/[\u4e00-\u9fff]/.test(q.h)?"\u0001"+q.h:"");
   const n=(txt.match(/___/g)||[]).length;
@@ -1946,7 +2137,7 @@ function vocabQ(L,w,pool){
   if(t==="listen")return{...base,t:"單字・聽力",q:"聽發音，選出正確的單字",auto:1,a:w[0],o:[w[0],...d.map(x=>x[0])]};
   return{...base,t:"單字・看圖",pic:w[2],q:"這是什麼？",a:w[0],o:[w[0],...d.map(x=>x[0])]};
 }
-function grammarQ(x,lid){return{...x,k:"g",lid,t:x.t||"文法",say:!/___/.test(x.q)&&!/[一-鿿]/.test(x.q)?x.q.replace(/^[AB]:\s*/,""):null}}
+function grammarQ(x,lid){return{...x,k:"g",lid,t:x.t||"文法",say:!/___/.test(x.q)&&!/[一-鿿]/.test(x.q)?x.q.replace(/^[A-Za-z]+:\s*/,"").replace(/\{[A-D]:([^}]+)\}/g,"$1"):null}}
 
 /* ================= 背單字 ================= */
 let batch=[],si=0;
@@ -2020,7 +2211,7 @@ function nextReview(){
   const pool=w.length>1?w.filter(x=>x.key!==prevKey):w;const x=pool[Math.random()*pool.length|0];
   return{...(x.w?vocabQ(lessonOf(x.lesson),x.w):x.q),review:x.key};
 }
-function fmtQ(s){return s.replace(/___/g,'<span class="blank"></span>')}
+function fmtQ(s){return s.replace(/___/g,'<span class="blank"></span>').replace(/\{([A-D]):([^}]+)\}/g,'<u class="seg"><b>$1</b>$2</u>')}
 function drawCells(){
   if(qmode==="vocab"){[...$("cells").children].forEach((c,i)=>c.classList.toggle("on",i<score))}
   else{const e=store.get("energy",0);$("cells").innerHTML="<i></i>".repeat(GRAMMAR_NEED);[...$("cells").children].forEach((c,i)=>c.classList.toggle("on",i<e))}
@@ -2036,7 +2227,7 @@ function render(){
   $("hint").hidden=!q.h;$("hint").innerHTML=q.h?fmtQ(q.h):"";
   $("speak").hidden=!q.say;
   $("fb").innerHTML="";$("next").hidden=true;
-  const opts=shuffle(q.o);
+  const opts=q.t==="挑錯"?q.o.slice().sort():shuffle(q.o);
   $("opts").className="opts"+(opts.some(o=>o.length>14)?" long":"");$("opts").innerHTML="";
   opts.forEach(o=>{const b=document.createElement("button");b.className="opt"+(isEn(o)?" en":"");b.textContent=o;b.onclick=()=>pick(b,o);$("opts").appendChild(b)});
   if(q.auto)setTimeout(()=>say(q.say),350);
