@@ -293,6 +293,12 @@ header{background:var(--ink);color:#fff;border-radius:6px;padding:14px 14px 12px
 .seg{text-decoration:none;border-bottom:3px solid var(--hot);padding:0 2px;margin:0 1px;white-space:nowrap}
 .seg b{font-family:var(--display);font-size:.6em;vertical-align:super;color:#fff;background:var(--hot);padding:0 4px;margin-right:2px;border-radius:2px}
 .qtype{letter-spacing:.2em}
+.spell-in{font-family:var(--qfont);font-weight:700;font-size:1.6rem;text-align:center;width:100%;padding:12px;border:3px solid var(--ink);border-radius:4px;box-shadow:4px 4px 0 var(--ink);background:#fff;color:var(--ink);letter-spacing:.04em}
+.spell-in:focus{outline:none;background:var(--warn-soft)}
+.spell-in.right{border-color:var(--ok);box-shadow:4px 4px 0 var(--ok);color:var(--ok)}
+.spell-in.wrong{border-color:var(--bad);box-shadow:4px 4px 0 var(--bad);color:var(--bad);text-decoration:line-through}
+.lhint{font-family:var(--qfont);font-weight:700;font-size:1.25rem;letter-spacing:.08em;color:var(--ink)}
+.spell-ans{font-family:var(--qfont);font-weight:700;font-size:1.5rem;margin:4px 0}
 </style>
 
 <canvas id="fx"></canvas>
@@ -2129,17 +2135,21 @@ function goHome(){sessionEnd(false);pushSummary();speechSynthesis&&speechSynthes
 document.querySelectorAll("[data-quit]").forEach(b=>b.onclick=goHome);
 
 /* ================= 出題 ================= */
+/* 背單字測驗：改成拼字題（中翻英拼字／聽音拼字／看圖拼字） */
+function spellAns(w){ // 有「原形 / 過去式」的字，考原形
+  let s=w[0];if(s.includes(" / "))s=s.split(" / ")[0];return s.replace(/\.\.\./g,"").trim();
+}
+const normSpell=s=>s.toLowerCase().replace(/[’']/g,"'").replace(/[.!?,]/g,"").replace(/\s+/g," ").trim();
+function letterHint(ans,showFirst){return ans.split(" ").map(word=>[...word].map((c,i)=>/[a-z]/i.test(c)?(i===0&&showFirst?c:"＿"):c).join(" ")).join("　　")}
 function vocabQ(L,w,pool){
-  const others=(pool||L.vocab).filter(x=>x[0]!==w[0]);
-  const src=others.length>=3?others:L.vocab.filter(x=>x[0]!==w[0]);
-  const types=["en2zh","zh2en","listen"];if(w[2])types.push("pic");
+  const types=["zhSpell","listenSpell"];if(w[2])types.push("picSpell");
   const lt=store.get("vType",{}),prev=lt[w[0]];const pool2=types.filter(x=>x!==prev);
-  const t=pool2[Math.random()*pool2.length|0],d=pickN(src,3);lt[w[0]]=t;store.set("vType",lt);
-  const base={k:"v",w,lid:L.id,ex:`${w[0]} = ${w[1]}`,say:w[0]};
-  if(t==="en2zh")return{...base,t:"單字・英翻中",q:`<span class="en">${w[0]}</span> 是什麼意思？`,a:w[1],o:[w[1],...d.map(x=>x[1])]};
-  if(t==="zh2en")return{...base,t:"單字・中翻英",q:`「${w[1]}」的英文是？`,a:w[0],o:[w[0],...d.map(x=>x[0])]};
-  if(t==="listen")return{...base,t:"單字・聽力",q:"聽發音，選出正確的單字",auto:1,a:w[0],o:[w[0],...d.map(x=>x[0])]};
-  return{...base,t:"單字・看圖",pic:w[2],q:"這是什麼？",a:w[0],o:[w[0],...d.map(x=>x[0])]};
+  const t=pool2[Math.random()*pool2.length|0];lt[w[0]]=t;store.set("vType",lt);
+  const a=spellAns(w);
+  const base={k:"v",w,lid:L.id,spell:true,a,o:[],ex:`${w[0]}：${w[1]}`,say:a};
+  if(t==="zhSpell")return{...base,t:"拼字・中翻英",q:`「${w[1]}」的英文怎麼拼？`,h:`<span class="lhint">${letterHint(a,true)}</span>`};
+  if(t==="listenSpell")return{...base,t:"拼字・聽力",auto:1,q:"聽發音，拼出這個字",h:`<span class="lhint">${letterHint(a,false)}</span>（${a.replace(/[^a-z]/gi,"").length} 個字母）`};
+  return{...base,t:"拼字・看圖",pic:w[2],q:"看圖拼出英文",h:`<span class="lhint">${letterHint(a,true)}</span>`};
 }
 function grammarQ(x,lid){return{...x,k:"g",lid,t:x.t||"文法",say:!/___/.test(x.q)&&!/[一-鿿]/.test(x.q)?x.q.replace(/^[A-Za-z]+:\s*/,"").replace(/\{[A-D]:([^}]+)\}/g,"$1"):null}}
 
@@ -2229,8 +2239,19 @@ function render(){
   $("pic").hidden=!q.pic;$("pic").textContent=q.pic||"";
   $("prompt").innerHTML=isEn(q.q)?`<span class="en">${fmtQ(q.q)}</span>`:fmtQ(q.q);
   $("hint").hidden=!q.h;$("hint").innerHTML=q.h?fmtQ(q.h):"";
-  $("speak").hidden=!q.say;
+  $("speak").hidden=!q.say||(q.spell&&!q.auto); // 中翻英、看圖拼字不給聽，避免直接聽到答案
   $("fb").innerHTML="";$("next").hidden=true;
+  if(q.spell){
+    $("opts").className="opts long";
+    $("opts").innerHTML=`<input id="spellIn" class="spell-in" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="輸入英文" aria-label="輸入英文">
+      <div class="row"><button class="go" id="spellOk">送出 ✔</button><button class="go alt" id="spellNo">不會</button></div>`;
+    const go=()=>{const v=$("spellIn").value;if(!v.trim()){$("spellIn").focus();return}pick(null,v)};
+    $("spellOk").onclick=go;$("spellNo").onclick=()=>pick(null,"");
+    $("spellIn").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();go()}});
+    setTimeout(()=>$("spellIn").focus(),50);
+    if(q.auto)setTimeout(()=>say(q.say),350);
+    return;
+  }
   const opts=q.t==="挑錯"?q.o.slice().sort():shuffle(q.o);
   $("opts").className="opts"+(opts.some(o=>o.length>14)?" long":"");$("opts").innerHTML="";
   opts.forEach(o=>{const b=document.createElement("button");b.className="opt"+(isEn(o)?" en":"");b.textContent=o;b.onclick=()=>pick(b,o);$("opts").appendChild(b)});
@@ -2249,16 +2270,17 @@ function recordReviewRight(q){
   setWrong(w);return hit.streak;
 }
 function detailHTML(q){
-  if(q.k!=="g")return `<p>${q.ex}</p>`;
+  if(q.k!=="g")return `<p class="spell-ans">${esc(q.a)}</p><p>${q.ex}</p>`;
   const zh=zhOf(q);
   return `<div class="sent">${fullSentence(q)}</div>`+(zh?`<p><span class="lbl">翻譯</span>${zh}</p>`:"")+`<p><span class="lbl">解析</span>${q.ex}</p>`
    +(POINTS[q.lid]?`<button class="pt-btn" onclick="var d=this.nextElementSibling;d.hidden=!d.hidden">📘 看本課文法重點</button><div class="points" hidden style="margin-top:8px">${pointsHTML(q.lid)}</div>`:"");
 }
 function pick(btn,o){
   if(answered)return;answered=true;
-  const q=round[idx],ok=o===q.a;
+  const q=round[idx],ok=q.spell?normSpell(o)===normSpell(q.a):o===q.a;
   if(cur){tickActive();cur.n++;if(ok)cur.c++}
-  [...$("opts").children].forEach(b=>{b.disabled=true;if(b.textContent===q.a)b.classList.add("right")});
+  if(q.spell){const inp=$("spellIn");inp.disabled=true;inp.classList.add(ok?"right":"wrong");$("spellOk").disabled=true;$("spellNo").disabled=true;btn=inp}
+  else [...$("opts").children].forEach(b=>{b.disabled=true;if(b.textContent===q.a)b.classList.add("right")});
   let extra="";
   if(ok){
     score++;combo++;if(combo>store.get("bestCombo",0))store.set("bestCombo",combo);
@@ -2281,7 +2303,7 @@ function pick(btn,o){
   if(q.k==="v")say(q.say);
   const last=qmode!=="review"&&idx===round.length-1;
   $("next").textContent=last?"看結果 ▶":"下一題 ▶";
-  $("next").hidden=false;$("next").focus({preventScroll:true});
+  $("next").hidden=false;if(q.spell)setTimeout(()=>$("next").focus({preventScroll:true}),500);else $("next").focus({preventScroll:true});
 }
 $("next").onclick=()=>{
   if(qmode==="vocab"){if(idx<round.length-1){idx++;render()}else vocabResult();return}
