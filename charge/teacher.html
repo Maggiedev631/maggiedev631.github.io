@@ -51,6 +51,9 @@ th{color:var(--muted);font-weight:700;font-size:.78rem}
 .gate{max-width:360px;margin:60px auto;text-align:center}
 .gate input{font-family:var(--display);font-size:1.8rem;letter-spacing:.4em;text-align:center;width:100%;padding:10px;border:3px solid var(--line);border-radius:14px;margin:12px 0}
 .btn{font-family:var(--body);font-weight:900;font-size:1.05rem;border:0;border-radius:14px;padding:12px 18px;background:var(--blue);color:#fff;box-shadow:0 5px 0 #1449b8;cursor:pointer;width:100%}
+.kids{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.kid{font-family:var(--body);font-weight:900;font-size:1rem;border:3px solid var(--ink);background:#fff;color:var(--ink);border-radius:4px;padding:6px 18px;box-shadow:3px 3px 0 var(--ink);cursor:pointer}
+.kid[aria-pressed="true"]{background:var(--volt)}
 .err{color:var(--bad);font-weight:700;min-height:1.4em}
 .empty{color:var(--muted);text-align:center;padding:20px}
 @media (max-width:520px){.tiles{grid-template-columns:repeat(2,1fr)}.bars i{width:10px}}
@@ -70,6 +73,7 @@ th{color:var(--muted);font-weight:700;font-size:.78rem}
   <div id="app" hidden>
     <header style="margin-bottom:14px">
       <h1>充電大作戰 · 學習紀錄</h1>
+      <div class="kids" id="kids"></div>
       <p class="sub" id="seen">讀取中…</p>
     </header>
 
@@ -104,7 +108,9 @@ th{color:var(--muted);font-weight:700;font-size:.78rem}
 <script>
 /* ===== 設定 ===== */
 const VIEW_CODE="2468";   // 老師／家長查看密碼（可自行修改）
-const KID_ID="kid1";      // 要和學生頁的 KID_ID 一樣
+const KIDS={kid1:"Nick",leon:"Leon"};   // 要和學生頁一樣
+let KID_ID=(()=>{let k=null;try{k=new URLSearchParams(location.search).get("kid")}catch(e){}k=(k||"").toLowerCase();if(k==="nick")k="kid1";
+  if(KIDS[k])return k;try{const s=sessionStorage.getItem("viewKid");if(KIDS[s])return s}catch(e){}return "kid1"})();
 const FIREBASE_CONFIG={
   apiKey:"AIzaSyAWLvYbyhq4UBdBFLYDvFgqVjTkurIBXiU",
   authDomain:"amc-spelling-star.firebaseapp.com",
@@ -131,16 +137,23 @@ $("enter").onclick=tryEnter;$("code").addEventListener("keydown",e=>{if(e.key===
 try{if(sessionStorage.getItem("chargeView")==="1"){$("gate").hidden=true;$("app").hidden=false;start()}}catch(e){}
 
 function loadJS(src){return new Promise((ok,no)=>{const s=document.createElement("script");s.src=src;s.onload=ok;s.onerror=no;document.head.appendChild(s)})}
-let summary={},events=[];
+let summary={},events=[],unsub=[];
+function drawKids(){$("kids").innerHTML="";Object.entries(KIDS).forEach(([id,name])=>{const b=document.createElement("button");b.className="kid";b.textContent=name;b.setAttribute("aria-pressed",id===KID_ID);
+  b.onclick=()=>{if(id===KID_ID)return;KID_ID=id;try{sessionStorage.setItem("viewKid",id)}catch(e){}summary={};events=[];unsub.forEach(f=>f());unsub=[];drawKids();$("seen").textContent="讀取中…";$("rows").innerHTML=`<tr><td colspan="5" class="empty">讀取中…</td></tr>`;listen()};$("kids").appendChild(b)})}
+function listen(){
+  if(typeof firebase==="undefined"||!firebase.apps.length)return;
+  const ref=firebase.firestore().collection("charge").doc(KID_ID);
+  const timer=setTimeout(()=>{if(!events.length)$("seen").textContent=`還沒有 ${KIDS[KID_ID]} 的資料。開始使用後，這裡會自動更新。`},8000);
+  unsub.push(ref.onSnapshot(d=>{summary=d.data()||{};render()},err=>fail(err)));
+  unsub.push(ref.collection("events").orderBy("ts","desc").limit(400).onSnapshot(s=>{clearTimeout(timer);events=s.docs.map(x=>x.data());render()},err=>fail(err)));
+}
 async function start(){
+  drawKids();
   try{
     const base="https://www.gstatic.com/firebasejs/10.12.2/";
     await loadJS(base+"firebase-app-compat.js");await loadJS(base+"firebase-firestore-compat.js");
     if(!firebase.apps.length)firebase.initializeApp(FIREBASE_CONFIG);
-    const ref=firebase.firestore().collection("charge").doc(KID_ID);
-    const timer=setTimeout(()=>{if(!events.length)$("seen").textContent="還沒有資料。孩子開始使用後，這裡會自動更新。"},10000);
-    ref.onSnapshot(d=>{summary=d.data()||{};render()},err=>fail(err));
-    ref.collection("events").orderBy("ts","desc").limit(400).onSnapshot(s=>{clearTimeout(timer);events=s.docs.map(x=>x.data());render()},err=>fail(err));
+    listen();
     setInterval(render,30000);
   }catch(e){fail(e)}
 }
@@ -148,7 +161,7 @@ function fail(e){$("seen").textContent="讀不到雲端資料："+(e&&e.code==="
 
 function render(){
   const today=dayKey(new Date());
-  $("seen").textContent=summary.lastSeen?`最後上線：${ago(summary.lastSeen)}`:"還沒有上線紀錄";
+  $("seen").textContent=`${KIDS[KID_ID]}・`+(summary.lastSeen?`最後上線：${ago(summary.lastSeen)}`:"還沒有上線紀錄");
   if(summary.endAt&&summary.endAt>Date.now()){$("status").className="status live";$("status").textContent=`📱 正在使用手機，還剩 ${Math.ceil((summary.endAt-Date.now())/60000)} 分鐘`}
   else{$("status").className="status";$("status").textContent="目前沒有在使用兌換的手機時間"}
   // 今天

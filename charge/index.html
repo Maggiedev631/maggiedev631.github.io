@@ -305,7 +305,7 @@ header{background:var(--ink);color:#fff;border-radius:6px;padding:14px 14px 12px
 <div class="wrap">
   <header>
     <div class="hud">
-      <h1 class="logo">充電大作戰<small>集星星換手機時間</small></h1>
+      <h1 class="logo">充電大作戰<small><span id="kidName"></span>集星星換手機時間</small></h1>
       <span class="chip rank" title="等級">🏅 <b id="rankName">青銅</b></span>
       <span class="chip streak" title="最高連擊">🔥 <b id="bestCombo">0</b></span>
       <button class="icon-btn" id="mute" aria-label="音效開關">🔊</button>
@@ -1953,7 +1953,13 @@ const FIREBASE_CONFIG={
   messagingSenderId:"93547096256",
   appId:"1:93547096256:web:adef0633c4326beb30a525"
 };
-const KID_ID="kid1";          // 學生代號（同一個代號的紀錄會出現在老師／家長頁）
+/* 學生代號：網址 ?kid=leon 決定是誰；記在這支手機上，之後開沒帶參數的網址也還是同一個人 */
+const KIDS={kid1:"Nick",leon:"Leon"};
+const KID_ID=(()=>{let k=null;try{k=new URLSearchParams(location.search).get("kid")}catch(e){}
+  if(k)k=k.toLowerCase();if(k==="nick")k="kid1";
+  if(k&&KIDS[k]){try{localStorage.setItem("kidId",JSON.stringify(k))}catch(e){}return k}
+  try{const s=JSON.parse(localStorage.getItem("kidId"));if(s&&KIDS[s])return s}catch(e){}
+  return "kid1"})();
 let fdb=null,syncOK=null;
 function loadJS(src){return new Promise((ok,no)=>{const s=document.createElement("script");s.src=src;s.onload=ok;s.onerror=no;document.head.appendChild(s)})}
 async function initSync(){
@@ -2422,6 +2428,7 @@ function drawLog(){
 }
 
 /* ================= 啟動 ================= */
+$("kidName").textContent=KIDS[KID_ID]+"・";
 drawHud();drawHome();drawLog();drawPset();show("home");drawSync();initSync();
 addEventListener("online",flushEvents);
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden"){pushSummary()}});
