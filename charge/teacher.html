@@ -108,9 +108,9 @@ th{color:var(--muted);font-weight:700;font-size:.78rem}
 <script>
 /* ===== 設定 ===== */
 /* 查看密碼：老師看全部；各家長只看得到自己的孩子（可自行修改數字） */
-const CODES={"2468":["kid1","leon"],   // 老師
-             "1357":["kid1"],          // Nick 的家長
-             "8642":["leon"]};         // Leon 的家長
+const CODES={"0000":["kid1","leon"],   // 老師（Maggie）
+             "2468":["kid1"],          // Nick 的家長
+             "1357":["leon"]};         // Leon 的家長
 const KIDS={kid1:"Nick",leon:"Leon"};   // 要和學生頁一樣
 let KID_ID=(()=>{let k=null;try{k=new URLSearchParams(location.search).get("kid")}catch(e){}k=(k||"").toLowerCase();if(k==="nick")k="kid1";
   if(KIDS[k])return k;try{const s=sessionStorage.getItem("viewKid");if(KIDS[s])return s}catch(e){}return "kid1"})();
