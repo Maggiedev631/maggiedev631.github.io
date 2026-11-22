@@ -107,10 +107,14 @@ th{color:var(--muted);font-weight:700;font-size:.78rem}
 
 <script>
 /* ===== 設定 ===== */
-const VIEW_CODE="2468";   // 老師／家長查看密碼（可自行修改）
+/* 查看密碼：老師看全部；各家長只看得到自己的孩子（可自行修改數字） */
+const CODES={"2468":["kid1","leon"],   // 老師
+             "1357":["kid1"],          // Nick 的家長
+             "8642":["leon"]};         // Leon 的家長
 const KIDS={kid1:"Nick",leon:"Leon"};   // 要和學生頁一樣
 let KID_ID=(()=>{let k=null;try{k=new URLSearchParams(location.search).get("kid")}catch(e){}k=(k||"").toLowerCase();if(k==="nick")k="kid1";
   if(KIDS[k])return k;try{const s=sessionStorage.getItem("viewKid");if(KIDS[s])return s}catch(e){}return "kid1"})();
+let ALLOWED=[];
 const FIREBASE_CONFIG={
   apiKey:"AIzaSyAWLvYbyhq4UBdBFLYDvFgqVjTkurIBXiU",
   authDomain:"amc-spelling-star.firebaseapp.com",
@@ -128,17 +132,19 @@ const LESSON=id=>id?id.replace(/^b(\d)l(\d)$/,"B$1 · L$2"):"";
 function fmtMin(sec){const m=Math.round(sec/60);return m<60?`${m} 分`:`${Math.floor(m/60)} 小時 ${m%60} 分`}
 function ago(ts){const s=(Date.now()-ts)/1000;if(s<90)return"剛剛";if(s<3600)return`${Math.round(s/60)} 分鐘前`;if(s<86400)return`${Math.round(s/3600)} 小時前`;return`${Math.round(s/86400)} 天前`}
 
+function enterWith(list){ALLOWED=list;if(!ALLOWED.includes(KID_ID))KID_ID=ALLOWED[0];$("gate").hidden=true;$("app").hidden=false;start()}
 function tryEnter(){
-  if($("code").value.trim()!==VIEW_CODE){$("gerr").textContent="密碼不對";return}
-  try{sessionStorage.setItem("chargeView","1")}catch(e){}
-  $("gate").hidden=true;$("app").hidden=false;start();
+  const list=CODES[$("code").value.trim()];
+  if(!list){$("gerr").textContent="密碼不對";return}
+  try{sessionStorage.setItem("chargeView",JSON.stringify(list))}catch(e){}
+  enterWith(list);
 }
 $("enter").onclick=tryEnter;$("code").addEventListener("keydown",e=>{if(e.key==="Enter")tryEnter()});
-try{if(sessionStorage.getItem("chargeView")==="1"){$("gate").hidden=true;$("app").hidden=false;start()}}catch(e){}
+try{const s=JSON.parse(sessionStorage.getItem("chargeView"));if(Array.isArray(s)&&s.length&&s.every(k=>KIDS[k]))enterWith(s)}catch(e){}
 
 function loadJS(src){return new Promise((ok,no)=>{const s=document.createElement("script");s.src=src;s.onload=ok;s.onerror=no;document.head.appendChild(s)})}
 let summary={},events=[],unsub=[];
-function drawKids(){$("kids").innerHTML="";Object.entries(KIDS).forEach(([id,name])=>{const b=document.createElement("button");b.className="kid";b.textContent=name;b.setAttribute("aria-pressed",id===KID_ID);
+function drawKids(){$("kids").innerHTML="";$("kids").hidden=ALLOWED.length<2;Object.entries(KIDS).filter(([id])=>ALLOWED.includes(id)).forEach(([id,name])=>{const b=document.createElement("button");b.className="kid";b.textContent=name;b.setAttribute("aria-pressed",id===KID_ID);
   b.onclick=()=>{if(id===KID_ID)return;KID_ID=id;try{sessionStorage.setItem("viewKid",id)}catch(e){}summary={};events=[];unsub.forEach(f=>f());unsub=[];drawKids();$("seen").textContent="讀取中…";$("rows").innerHTML=`<tr><td colspan="5" class="empty">讀取中…</td></tr>`;listen()};$("kids").appendChild(b)})}
 function listen(){
   if(typeof firebase==="undefined"||!firebase.apps.length)return;

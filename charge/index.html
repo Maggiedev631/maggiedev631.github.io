@@ -2006,7 +2006,14 @@ function sessionEnd(done){
 /* ================= 共用 ================= */
 const RANKS=[["青銅",0],["白銀",100],["黃金",300],["白金",600],["鑽石",1000],["大師",1600],["傳說",2500]];
 const $=id=>document.getElementById(id);
-const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+/* 每個學生的資料（星星、錯題、家長密碼、紀錄）分開存：Nick 用原本的名稱，其他學生加上代號前綴 */
+const PFX=KID_ID==="kid1"?"":KID_ID+":";
+(function migrate(){ // 第一次用新連結時，把這支手機原本的資料搬過來（Leon 的手機原本就是他自己的資料）
+  if(!PFX)return;try{if(localStorage.getItem(PFX+"_init"))return;
+    const keys=[];for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&!k.includes(":")&&k!=="kidId")keys.push(k)}
+    keys.forEach(k=>{if(localStorage.getItem(PFX+k)==null)localStorage.setItem(PFX+k,localStorage.getItem(k))});
+    localStorage.setItem(PFX+"_init","1");}catch(e){}})();
+const store={get(k,d){try{const v=localStorage.getItem(PFX+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem(PFX+k,JSON.stringify(v))}catch(e){}}};
 const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
 const pickN=(a,n)=>shuffle(a).slice(0,n);
 const isEn=s=>/^[\x00-\x7F]+$/.test(s);
@@ -2416,7 +2423,7 @@ $("psSave").onclick=()=>{
 };
 $("psReset").onclick=()=>{$("psConfirm").hidden=false};
 $("psNo").onclick=()=>{$("psConfirm").hidden=true};
-$("psYes").onclick=()=>{try{localStorage.removeItem("pinH")}catch(e){}store.set("stars",0);addLog("重設密碼（星星歸零）","");$("psConfirm").hidden=true;$("psMsg").textContent="已重設，星星歸零。";drawPset();drawWallet()};
+$("psYes").onclick=()=>{try{localStorage.removeItem(PFX+"pinH")}catch(e){}store.set("stars",0);addLog("重設密碼（星星歸零）","");$("psConfirm").hidden=true;$("psMsg").textContent="已重設，星星歸零。";drawPset();drawWallet()};
 $("stop").onclick=()=>{clearInterval(tick);store.set("endAt",0);
   logEvent({type:"phoneEnd",used:Math.round((Date.now()-store.get("phoneStart",Date.now()))/60000),early:true});goHome()};
 
