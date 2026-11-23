@@ -1954,7 +1954,7 @@ const FIREBASE_CONFIG={
   appId:"1:93547096256:web:adef0633c4326beb30a525"
 };
 /* 學生代號：網址 ?kid=leon 決定是誰；記在這支手機上，之後開沒帶參數的網址也還是同一個人 */
-const KIDS={kid1:"Nick",leon:"Leon"};
+const KIDS={kid1:"Nick",leon:"Leon",demo:"示範"};
 const KID_ID=(()=>{let k=null;try{k=new URLSearchParams(location.search).get("kid")}catch(e){}
   if(k)k=k.toLowerCase();if(k==="nick")k="kid1";
   if(k&&KIDS[k]){try{localStorage.setItem("kidId",JSON.stringify(k))}catch(e){}return k}
@@ -2110,7 +2110,7 @@ function drawMeters(){
   $("gMeterHome").innerHTML=html;[...$("gMeterHome").children].forEach((c,i)=>c.classList.toggle("on",i<e));
   $("gNeed").textContent=GRAMMAR_NEED;
 }
-const pips=(l,m)=>`<i class="pips">${"<b class=on></b>".repeat(Math.max(l,0))}${"<b></b>".repeat(m-Math.max(l,0))}</i>今日剩 ${Math.max(l,0)} 次`;
+const pips=(l,m)=>l>m?"示範帳號・不限次數":`<i class="pips">${"<b class=on></b>".repeat(Math.max(l,0))}${"<b></b>".repeat(m-Math.max(l,0))}</i>今日剩 ${Math.max(l,0)} 次`;
 const bookOf=l=>l.id.slice(0,2);
 const BOOK_NAME={b1:"第一冊",b2:"第二冊",b3:"第三冊",b4:"第四冊",b5:"第五冊",b6:"第六冊"};
 function drawHome(){
@@ -2210,7 +2210,7 @@ function startQuiz(m,qs){
 /* 每日次數 */
 function daily(){const d=store.get("daily",{});if(d.d!==todayKey())return{d:todayKey(),vocab:0,grammar:0};return d}
 function useChance(kind){const d=daily();d[kind]=(d[kind]||0)+1;store.set("daily",d);drawHome()}
-const leftOf=kind=>(kind==="vocab"?DAILY_VOCAB:DAILY_GRAMMAR)-(daily()[kind]||0);
+const leftOf=kind=>KID_ID==="demo"?99:(kind==="vocab"?DAILY_VOCAB:DAILY_GRAMMAR)-(daily()[kind]||0); // 示範帳號不限次數
 /* 做過的題目不再出現：先出課本題庫，用完後出系統產生的新題 */
 function buildGrammar(n){
   const L=lesson(),usedAll=store.get("usedQ",{}),used=new Set(usedAll[L.id]||[]);
