@@ -178,8 +178,8 @@ document.addEventListener("click",e=>{if(e.target.id==="closeD"){SEL=null;render
 /* ---------- 學生帳號 ---------- */
 function renderAcc(){
   $("#main").innerHTML=`<div class="card"><h2>新增學生</h2>
-    <p class="note">每行一位：<b>班級 名字 密碼</b>（例如 H7 Leon 1357）。沒有分班可以只寫 <b>名字 密碼</b>。名字就是學生登入時要打的英文名字。</p>
-    <textarea id="bulk" rows="5" placeholder="H7 Leon 1357&#10;H7 Amy 2468" style="margin-top:10px"></textarea>
+    <p class="note">每行一位：<b>班級 名字 密碼</b>（例如 H7 Maggie 1357）。沒有分班可以只寫 <b>名字 密碼</b>。名字就是學生登入時要打的英文名字。</p>
+    <textarea id="bulk" rows="5" placeholder="H7 Maggie 1357&#10;H7 Amy 2468" style="margin-top:10px"></textarea>
     <div class="row" style="margin-top:10px"><label class="note">課本 <select id="bbook"><option value="">讓學生自己選</option><option>康軒</option><option>翰林</option></select></label><button class="btn" id="add">新增</button><span class="err" id="aerr"></span></div></div>
     <div class="card"><h2>學生名單</h2><p class="note" style="margin-bottom:10px">密碼只有你看得到、改得了。改完按 Enter 或點別處就會存檔。改密碼後，學生要用新密碼重新登入，練習紀錄會保留。</p>
     <div class="tw"><table><tr><th>名字</th><th>班級</th><th>課本</th><th>密碼</th><th></th></tr>

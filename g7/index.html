@@ -426,7 +426,7 @@ function loginView(step="name",cand=[]){
   speechSynthesis?.cancel();
   $("#app").innerHTML=`<div class="title" style="justify-content:center">${WHALE}<div><h1>國一英文練功房</h1><small>康軒 · 翰林</small></div></div>
   <div class="card login">
-    ${step==="name"?`<p class="step">輸入你的英文名字</p><input id="nm" class="bigin" autocomplete="off" autocapitalize="words" spellcheck="false" placeholder="例如 Leon" value="${esc(lsGet("g7_lastname",""))}">
+    ${step==="name"?`<p class="step">輸入你的英文名字</p><input id="nm" class="bigin" autocomplete="off" autocapitalize="words" spellcheck="false" placeholder="例如 Maggie" value="${esc(lsGet("g7_lastname",""))}">
       <div id="msg"></div><div class="row" style="margin-top:12px"><button class="btn" id="go">下一步</button></div>`
     :`<p class="step">${esc(cand[0].name)}，請輸入密碼</p><input id="pw" class="bigin" type="password" inputmode="text" autocomplete="current-password" placeholder="老師給你的密碼">
       <div id="msg"></div><div class="row" style="margin-top:12px"><button class="btn ghost" id="back">上一步</button><button class="btn" id="go">登入</button></div>`}
