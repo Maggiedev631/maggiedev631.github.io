@@ -95,7 +95,7 @@ const auth=firebase.auth(), db=firebase.firestore();
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const blank=s=>esc(s).replace(/＿＿|_{3,}/g,'<span class="bl"></span>');
-const L="ABCD", RANKS=[[0,"青銅"],[100,"白銀"],[300,"黃金"],[600,"白金"],[1000,"鑽石"],[1600,"大師"]];
+const L="ABCD", RANKS=[[0,"青銅"],[300,"白銀"],[800,"黃金"],[1600,"白金"],[3000,"鑽石"],[5000,"大師"]];
 const rankOf=xp=>{let k=0;RANKS.forEach((r,i)=>{if(xp>=r[0])k=i});return k};
 const toast=m=>{const t=document.createElement("div");t.className="toast";t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),2400)};
 const fmt=t=>{if(!t)return "—";const d=new Date(t);return `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`};

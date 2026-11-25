@@ -155,7 +155,7 @@ const related=(a,b)=>{const A=lessons(a),B=lessons(b);for(const x of A)if(B.has(
 const posTags=p=>(p||"").split(/\s+/).filter(Boolean).map(x=>`<span class="pos">${esc(x)}</span>`).join("");
 const norm=s=>String(s).toLowerCase().replace(/[’‘`]/g,"'").replace(/\.\.\.|…/g,"").replace(/[.?!,]/g,"").replace(/\s+/g," ").trim();
 const today=()=>new Date().toLocaleDateString("sv");
-const RANKS=[[0,"青銅"],[100,"白銀"],[300,"黃金"],[600,"白金"],[1000,"鑽石"],[1600,"大師"]];
+const RANKS=[[0,"青銅"],[300,"白銀"],[800,"黃金"],[1600,"白金"],[3000,"鑽石"],[5000,"大師"]];
 const WRONG_MAX=10;
 const WHALE=`<svg viewBox="0 0 120 76" aria-hidden="true"><path d="M10 46c4-17 22-28 44-28 22 0 38 11 44 24 3-4 8-10 14-11-2 7-5 12-10 15 4 3 6 7 6 11-6-1-10-4-13-7-6 15-24 24-44 24C27 74 7 64 10 46z" fill="#BFD7FF" stroke="#7E8FD8" stroke-width="2" stroke-linejoin="round"/><path d="M16 52c10 10 34 14 56 6" fill="none" stroke="#7E8FD8" stroke-width="2" stroke-linecap="round"/><path d="M18 56c12 9 32 11 50 5-6 9-18 13-30 12-10-1-17-8-20-17z" fill="#E9F1FF"/><circle cx="34" cy="40" r="3" fill="#4A3A5C"/><circle cx="35" cy="39" r="1" fill="#fff"/><ellipse cx="27" cy="47" rx="5" ry="3" fill="#FF9EC0" opacity=".8"/><path d="M33 47q3 3 6 0" fill="none" stroke="#4A3A5C" stroke-width="1.8" stroke-linecap="round"/><path d="M44 14c-2-5 0-9 3-11M50 14c1-5 4-8 8-9M47 14V5" fill="none" stroke="#8EC5FF" stroke-width="2.2" stroke-linecap="round"/><path d="M98 10l1.6 3.6 3.6 1.6-3.6 1.6L98 20.4l-1.6-3.6-3.6-1.6 3.6-1.6z" fill="#FFC94D"/><path d="M110 26l1 2.2 2.2 1-2.2 1-1 2.2-1-2.2-2.2-1 2.2-1z" fill="#FF9EC0"/></svg>`;
 function sparkle(el){if(matchMedia("(prefers-reduced-motion:reduce)").matches)return;const r=(el||document.body).getBoundingClientRect();const sy=["✦","♡","✧","★"];for(let k=0;k<10;k++){const i=document.createElement("span");i.className="spark";i.textContent=sy[k%4];i.style.color=["#EE6F9C","#A68BF0","#F2AE1C","#3FBF98"][k%4];i.style.left=(r.left+r.width/2)+"px";i.style.top=(r.top+r.height/2)+"px";const a=Math.random()*6.28,d=50+Math.random()*60;i.style.setProperty("--x",Math.cos(a)*d+"px");i.style.setProperty("--y",Math.sin(a)*d+"px");document.body.appendChild(i);setTimeout(()=>i.remove(),950)}}
@@ -220,9 +220,9 @@ function home(){
     <p class="step">今天想練什麼呢？</p>
     ${blocked?`<p class="warn">錯題本已經有 ${allW} 題，先把錯題練熟才能開始新任務！</p>`:""}
     <div class="missions">
-      <button class="mission m1" id="go_learn" ${blocked||!W.length?"disabled":""}><span class="ic">${IC.learn}</span><b>背單字</b><p>一次背 5 個，小考全對拿 1 顆星</p>${ww?`<span class="go">還不熟 ${ww} 個</span>`:""}</button>
+      <button class="mission m1" id="go_learn" ${blocked||!W.length?"disabled":""}><span class="ic">${IC.learn}</span><b>背單字</b><p>一次背 5 個，小考全對拿 1 顆星（XP 很少）</p>${ww?`<span class="go">還不熟 ${ww} 個</span>`:""}</button>
       <button class="mission m2" id="go_spell" ${blocked||!W.length?"disabled":""}><span class="ic">${IC.spell}</span><b>拼字挑戰</b><p>聽發音、看中文，拼出 10 個單字，拿 16 分以上得 1 顆星</p></button>
-      <button class="mission m3" id="go_gram" ${blocked||!Qs.length?"disabled":""}><span class="ic">${IC.gram}</span><b>文法闖關</b><p>10 題選擇題，每答對 5 題充滿 1 顆星</p>${wm?`<span class="go">錯題 ${wm} 題</span>`:""}</button>
+      <button class="mission m3" id="go_gram" ${blocked||!Qs.length?"disabled":""}><span class="ic">${IC.gram}</span><b>文法闖關</b><p>升段位主要靠這裡！每題答對 +10 XP，答對 8 題以上再 +20</p>${wm?`<span class="go">錯題 ${wm} 題</span>`:""}</button>
       <button class="mission m4" id="go_wrong"><span class="ic">${IC.wrong}</span><b>錯題本</b><p>看看哪些單字還不會、哪些文法錯過，反覆練到會</p><span class="go">${allW} 題</span></button>
     </div>
   </div>
@@ -274,7 +274,7 @@ function learn(){
         speak(w.w); $("#nx").onclick=()=>{k++;k<items.length?ask():done()}});
     };
     const done=()=>{const all=right===items.length;
-      set.forEach(w=>{if(!miss.includes(w))S.learned[w.id]=true}); addXP(right*2+(all?5:0)); if(all)S.stars++; save(); logResult("背單字",right,items.length,miss.map(w=>w.id));
+      set.forEach(w=>{if(!miss.includes(w))S.learned[w.id]=true}); addXP(right); if(all)S.stars++; save(); logResult("背單字",right,items.length,miss.map(w=>w.id));
       result(all?"全對！拿到 1 顆星":"再加油！全對才拿得到星星",`${right} / ${items.length}`,miss.map(w=>[w.w,w.z]),learn,"再背 5 個");};
     ask();
   };
@@ -306,7 +306,7 @@ function spell(){
         else{wait=true;miss.push(w);addWrong("spell",w.id);$("#fb").innerHTML=`<div class="fb no">正確答案是 <b>${esc(w.w)}</b>${w.k?` [${esc(w.k)}]`:""}</div>`;$("#ok").textContent=i<set.length-1?"下一題":"看結果";speak(w.w)}}
     }
   };
-  const done=()=>{const star=pts>=16;addXP(pts+(star?5:0));if(star)S.stars++;save();logResult("拼字挑戰",pts,20,miss.map(w=>w.id));
+  const done=()=>{const star=pts>=16;addXP(Math.round(pts/4));if(star)S.stars++;save();logResult("拼字挑戰",pts,20,miss.map(w=>w.id));
     result(star?"拼字高手！拿到 1 顆星":"16 分以上就有星星，再挑戰一次！",`${pts} / 20 分`,miss.map(w=>[w.w,w.z]),spell,"再挑戰一次")};
   ask();
 }
@@ -329,7 +329,7 @@ function grammar(){
     if(ok){right++;S.cells++;if(S.cells>=5){S.cells=0;S.stars++;starGot++}}else{miss.push(set[i]);addWrong("mc",set[i].id)} save();
     $(".cells").outerHTML=cellsHTML();
     nx().onclick=()=>{i++;i<set.length?ask():done()}});
-  const done=()=>{addXP(right*3);logResult("文法闖關",right,set.length,miss.map(q=>q.id));result(starGot?`充飽電了！拿到 ${starGot} 顆星`:`答對 5 題就能充滿 1 顆星`,`${right} / ${set.length}`,miss.map(q=>[q.o[L.indexOf(q.a)],q.q.replace(/＿＿/g,"___")]),grammar,"再闖一關")};
+  const done=()=>{const gx=right*10+(right>=8?20:0);addXP(gx);logResult("文法闖關",right,set.length,miss.map(q=>q.id));result((starGot?`充飽電了！拿到 ${starGot} 顆星`:`答對 5 題就能充滿 1 顆星`)+`　+${gx} XP`,`${right} / ${set.length}`,miss.map(q=>[q.o[L.indexOf(q.a)],q.q.replace(/＿＿/g,"___")]),grammar,"再闖一關")};
   ask();
 }
 
@@ -350,7 +350,7 @@ function review(kind="word"){
         $("#fb").innerHTML=`<div class="fb ${ok?"ok":"no"}">${ok?"答對了！":"正確答案是"} <b>${esc(w.w)}</b></div>`;$("#ok").textContent=i<list.length-1?"下一題":"看結果";speak(w.w)};
       $("#ok").onclick=sub;inp.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();sub()}}}
   };
-  const mark=(it,ok)=>{const w=S.wrong.find(x=>x.id===it.id);if(!w)return;if(ok){w.ok++;if(w.ok>=2){S.wrong=S.wrong.filter(x=>x.id!==it.id);cleared++;addXP(3)}}else w.ok=0;save()};
+  const mark=(it,ok)=>{const w=S.wrong.find(x=>x.id===it.id);if(!w)return;if(ok){w.ok++;if(w.ok>=2){S.wrong=S.wrong.filter(x=>x.id!==it.id);cleared++;addXP(it.kind==="mc"?8:1)}}else w.ok=0;save()};
   const left=wrongs(kind).length; const done=()=>(logResult(kind==="mc"?"文法錯題複習":"單字錯題複習",cleared,list.length,[]),result(cleared?`有 ${cleared} 題練熟、畢業了！`:"再練一次，連續答對 2 次就會畢業",`還剩 ${wrongs(kind).length} 題`,[],()=>wrongBook(kind),"回錯題本"));
   ask();
 }
